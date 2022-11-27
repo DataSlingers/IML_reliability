@@ -224,6 +224,7 @@ class dimension_reduction():
         self.consistency_knn_mean =self.consistency_knn.groupby(['data','method','noise','sigma','rank','K','criteria'],as_index=False).mean('Consistency')
         self.aucc = self.consistency_knn_mean.groupby(['data','method','noise','sigma','criteria','rank'])['Consistency'].apply(get_auc).reset_index()
 
+        self.aucc  =self.aucc .rename(columns={'Consistency': 'AUC'}) 
 
     
     
