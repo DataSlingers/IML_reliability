@@ -1,4 +1,5 @@
-# minipatch-learning
+# IML reliability
+
 
 
 ## Installation

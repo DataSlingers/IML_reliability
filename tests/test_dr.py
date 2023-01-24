@@ -1,4 +1,4 @@
-import IMLconsistency
+import imlreliability
 
 import pandas as pd
 import numpy as np

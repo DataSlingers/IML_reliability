@@ -9,7 +9,7 @@ ver_file = os.path.join('imlreliability', '_version.py')
 with open(ver_file) as f:
     exec(f.read())
 
-DISTNAME = 'IML-consistency'
+DISTNAME = 'IML_reliability'
 DESCRIPTION = 'Empirical study on reliability of IML methods.'
 
 AUTHOR = 'L. GAN'
