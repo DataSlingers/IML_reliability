@@ -114,7 +114,7 @@ class feature_impoReg():
         a n_repeat*M matrix
     
     """
-    def __init__(self,data,importance_func,classifier,
+    def __init__(self,data,importance_func,
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -441,7 +441,7 @@ class feature_impoReg_MLP():
 
     
     """
-    def __init__(self,data,importance_func,classifier,
+    def __init__(self,data,importance_func, 
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -641,7 +641,7 @@ class feature_impoClass_MLP():
 
     
     """
-    def __init__(self,data,importance_func,classifier,
+    def __init__(self,data,importance_func, 
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
