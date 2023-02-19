@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
-def internal_resample(data, random_index=None,proportion=0.7):
+def internal_resample(data,random_index=None, proportion=0.7,stratify=False):
     """
     Args:
       data: (x,y) format
@@ -11,7 +11,10 @@ def internal_resample(data, random_index=None,proportion=0.7):
     """
         
     (x,y)=data
-    x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=random_index,test_size=0.3)
+    if stratify:
+        x_train, x_test, y_train, y_test = train_test_split(x, y,stratify=y,random_state=random_index,test_size=0.3)
+    else:
+        x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=random_index,test_size=0.3)
 
     return (x_train, x_test, y_train, y_test)
 def add_noise( x, noise_type,sigma,random_index=None):

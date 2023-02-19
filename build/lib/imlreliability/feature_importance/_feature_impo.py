@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 from sklearn.utils.multiclass import unique_labels
-from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
+from sklearn.base import BaseEstimator, 
+Mixin, TransformerMixin
 from sklearn.metrics import accuracy_score
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.base import is_classifier, is_regressor
 from sklearn import preprocessing
-
 
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Activation
@@ -17,9 +17,8 @@ from tensorflow import keras
 from tensorflow.python.keras.wrappers.scikit_learn import KerasRegressor
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
-
 from .rbo import RankingSimilarity
-from .util_feature_impo.py import (internal_resample,clean_score,get_rank,jaccard_similarity)
+from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_similarity)
 
 
 
@@ -73,7 +72,165 @@ def _consistency(estimator, scores, accuracys,data_name,estimator_name,impotance
             return results,accuracy 
         
 
+class feature_impoReg():
+    """ 
+    Parameters
+    ----------
+    data: 
+        (X,Y)
+        X: N*M numpy array
+        Y: N*1 numpy array 
+        
+    estimator : estimator object
+        This is assumed to implement the scikit-learn estimator interface.
+        Either estimator needs to provide a ``score`` function,
+        or ``scoring`` must be passed.
+        
+        
+    importance_func : str, callable, list, tuple or dict, default=None
+    
+        Strategy to evaluate feature importance score.
+        If `importance` represents a single score, one can use:
+        - a single string (see :ref:`importance_parameter`);
+        - a callable (see :ref:`importance`) that returns a list of values.
+        
+            
+    split_proportion: float in (0,1). need to specify if noise_type=='split'
+    
+    sigma: float, level of noise. need to specify if noise_type!='split'
+    
+    
+    n_repeat: int, default=100
+        Number of repeats to measure consistency (run in parallel).
+    
+    
+    
+    Attributes
+    ----------
+    
+    prediction_score: mse or accuracy.. 
+        a list with length = n_repeat
+    
+    importance_score: 
+        a n_repeat*M matrix
+    
+    """
+    def __init__(self,data,importance_func,
+                 estimator=None,
+                 sigma=None,
+                 evaluate_fun=accuracy_score,
+                 n_repeat=50,
+                 split_proportion=0.7,
+                rand_index=None,
+                verbose=True):
+        self.evaluate_fun=evaluate_fun
+        self.split_proportion=split_proportion
+        self.verbose=verbose
+        self.n_repeat=n_repeat
+        self.importance_func=importance_func        
+        self.data=data
+        (self.X,self.Y) = self.data
+ 
+        self.M=len(self.X[0])
+        if not estimator: ## default regression model 
+            self.estimator = self._base_model_regression()
+            self.target_layer=-1
+        else:
+            self.estimator=estimator
 
+
+
+    def fit(self, *args,**kwargs):
+        self.scores= []
+        self.accuracys = []
+        (X,Y) = self.data
+        self.M=len(X[0])
+
+        for i in range(self.n_repeat):
+            print(i)
+            if self.verbose==True:
+                print('Iter: ',i)
+           
+            x_train, x_test, y_train, y_test = internal_resample(
+                                   data=(X,Y),
+                                   random_index=i*4,
+                                   proportion=self.split_proportion)
+            ## standardize 
+            x_train=preprocessing.normalize(x_train)
+            x_test =preprocessing.normalize(x_test)
+            y_train=preprocessing.normalize(y_train)
+            y_test =preprocessing.normalize(y_test)
+            
+            
+
+            
+            self.fitted = self.estimator.fit(x_train,y_train)
+            s=self._impo_score(x_train,y_train,x_test)
+            acc = self.evaluate_fun(self.fitted.predict(x_test),y_test)
+
+            self.scores.append(s)
+            self.accuracys.append(acc)            
+    def _impo_score(self,
+           x_train,
+           y_train,
+           x_test):
+        yhat = self.fitted.predict
+            
+            
+        x_train,x_test=np.array(x_train, dtype=float),np.array(x_test, dtype=float) ## shap has error
+        scoring=self.evaluate_fun
+        packs = self.fitted.__module__.split('.')
+
+        if not self.importance_func:
+            if np.isin('linear_model',packs) or np.isin('svm',packs):
+                print('use coefs as feature importance ')
+                s = np.abs(self.fitted.coef_)
+            elif np.isin('ensemble',packs) or np.isin('xgboost',packs) or np.isin('tree',packs):
+                print('use feature_importances_ as feature importance ')
+                s = self.fitted.feature_importances_
+        else:
+        #### use user-defined importance function
+            impo_pack = self.importance_func.__module__.split('.')
+
+            if np.isin('shap',impo_pack):
+                if np.isin('_permutation',impo_pack):
+                    
+                    
+                    explainer =self.importance_func(yhat,x_train)
+#                     return explainer,x_test,yhat
+                 
+                elif np.isin('_linear',impo_pack):
+                    explainer =self.importance_func(self.fitted,x_train)
+                else:
+                #if np.isin('_tree',impo_pack):
+                    explainer =self.importance_func(self.fitted,check_additivity=False)
+                s = explainer(x_test)[0].values.T.tolist()
+
+            
+                
+                fi = [] ## randomly choose 100 observations  
+                r = np.random.RandomState()
+                idx_I = np.sort(r.choice(len(x_test), size=max(100,len(x_test)), replace=False)) # uniform sampling of subset of observations
+                for idd in idx_I:
+                    exp = explainer.explain_instance(x_test[idd], yhat, num_features=self.M)
+                    mapp = exp.as_map()
+                    fi.append([a[1] for a in sorted(mapp[list(mapp.keys())[0]])])
+                s=np.array(fi).mean(0)
+
+
+            elif np.isin('_permutation_importance',impo_pack):
+                s = self.importance_func(self.fitted,x_train, y_train).importances_mean
+        
+            else:
+                s = self.importance_func(self.fitted,x_train, y_train)
+        
+        return clean_score(s)
+
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+        
+        
+        
         
         
 class feature_impoClass():
@@ -121,9 +278,9 @@ class feature_impoClass():
     
     """
     def __init__(self,data,estimator,
-                 sigma=None,
-                 importance_func=None,
-                 evaluate_fun=accuracy_score,
+                                                evaluate_fun=accuracy_score,
+importance_func=None,
+   sigma=None,
                  n_repeat=100,
                  split_proportion=0.7,
                 rand_index=None,
@@ -155,10 +312,10 @@ class feature_impoClass():
             x_train, x_test, y_train, y_test = internal_resample(
                                    data=(X,Y),
                                    random_index=i*4,
-                                   proportion=self.split_proportion)
+                                   proportion=self.split_proportion,stratify=True)
             ## standardize 
-            x_train=preprocessing.scale(x_train)
-            x_test =preprocessing.scale(x_test)
+            x_train=preprocessing.normalize(x_train)
+            x_test =preprocessing.normalize(x_test)
             
 
             
@@ -234,7 +391,7 @@ class feature_impoClass():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,Ks=range(1,31,1)):
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
         
         
@@ -256,7 +413,7 @@ class feature_impoReg_MLP():
         or ``scoring`` must be passed.
         
         
-    self.importance_func : str, callable, list, tuple or dict, default=None
+    importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
@@ -285,7 +442,7 @@ class feature_impoReg_MLP():
 
     
     """
-    def __init__(self,data,importance_func,classifier,
+    def __init__(self,data,importance_func, 
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -410,8 +567,10 @@ class feature_impoReg_MLP():
                                    random_index=i*4,
                                    proportion=self.split_proportion)
             ## standardize 
-            x_train=preprocessing.scale(x_train)
-            x_test =preprocessing.scale(x_test)
+            x_train=preprocessing.normalize(x_train)
+            x_test =preprocessing.normalize(x_test)
+            y_train=preprocessing.normalize(y_train)
+            y_test =preprocessing.normalize(y_test)
            
             fitted = self.estimator.fit(x_train,y_train)
             ##########
@@ -452,7 +611,7 @@ class feature_impoClass_MLP():
         or ``scoring`` must be passed.
         
         
-    self.importance_func : str, callable, list, tuple or dict, default=None
+    importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
@@ -483,7 +642,7 @@ class feature_impoClass_MLP():
 
     
     """
-    def __init__(self,data,importance_func,classifier,
+    def __init__(self,data,importance_func,
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -615,11 +774,11 @@ class feature_impoClass_MLP():
             x_train, x_test, y_train, y_test= _internal_resample(
                                    data=(self.X,self.Y),
                                    random_index=i*4,
-                                   proportion=self.split_proportion)
+                                   proportion=self.split_proportion,stratify=True)
 
             ## standardize 
-            x_train=preprocessing.scale(x_train)
-            x_test =preprocessing.scale(x_test)
+            x_train=preprocessing.normalize(x_train)
+            x_test =preprocessing.normalize(x_test)
             
             
             fitted = self.estimator.fit(x_train,y_train)

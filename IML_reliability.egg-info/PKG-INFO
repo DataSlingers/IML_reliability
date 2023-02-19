@@ -2,13 +2,14 @@ Metadata-Version: 2.1
 Name: IML-reliability
 Version: 0.1
 Summary: Reliability Study on Interpretations of Interpretable Machine Learning Model
-Home-page: https://github.com/DataSlingers/IML_reliability
+Home-page: https://github.com/pypa/IML_reliability
 Download-URL: https://github.com/DataSlingers/IML_reliability
 Author: L. GAN
 Author-email: Luqin Gan <glq.gan@gmail.com>
 License: MIT
 Project-URL: Homepage, https://github.com/pypa/IML_reliability
 Project-URL: Dashboard, https://iml-reliability.herokuapp.com/home
+Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
@@ -17,6 +18,9 @@ Description-Content-Type: text/markdown
 License-File: LICENSE
 
 # IML reliability
+
+
+
 
 
 
@@ -36,3 +40,5 @@ Clone this repo and run
 ## API Documentations
 
 The detailed API documentation for this package can be found at [https://DataSlingers.github.io/IML_reliability]
+
+

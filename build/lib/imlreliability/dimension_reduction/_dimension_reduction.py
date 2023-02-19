@@ -55,7 +55,7 @@ class dimension_reduction():
                  sigma=1,rank=2,
                  noise_type='normal',
                  n_repeat=50,
-                 scale=True,
+                 normalize=True,
                  rand_index=None,
 #                  user_metric= None,
 #                  user_metric_name='user_metric',
@@ -72,8 +72,8 @@ class dimension_reduction():
         self.estimator=estimator
 
   
-        if scale:
-            self.X = preprocessing.scale(self.X)
+        if normalize:
+            self.X = preprocessing.normalize(self.X)
 
     def fit(self, *args,**kwargs):
         self.embedding = []
@@ -224,7 +224,6 @@ class dimension_reduction():
         self.consistency_knn_mean =self.consistency_knn.groupby(['data','method','noise','sigma','rank','K','criteria'],as_index=False).mean('Consistency')
         self.aucc = self.consistency_knn_mean.groupby(['data','method','noise','sigma','criteria','rank'])['Consistency'].apply(get_auc).reset_index()
 
-        self.aucc  =self.aucc .rename(columns={'Consistency': 'AUC'}) 
 
     
     
