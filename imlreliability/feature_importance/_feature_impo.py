@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.utils.multiclass import unique_labels
-from sklearn.base import BaseEstimator
-Mixin, TransformerMixin
+from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.metrics import accuracy_score
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.base import is_classifier, is_regressor
@@ -87,7 +86,7 @@ class feature_impoReg():
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    self.importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
@@ -115,7 +114,7 @@ class feature_impoReg():
         a n_repeat*M matrix
     
     """
-    def __init__(self,data,importance_func,
+    def __init__(self,data,importance_func,classifier,
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -278,9 +277,9 @@ class feature_impoClass():
     
     """
     def __init__(self,data,estimator,
-                                                evaluate_fun=accuracy_score,
-importance_func=None,
-   sigma=None,
+                 sigma=None,
+                 importance_func=None,
+                 evaluate_fun=accuracy_score,
                  n_repeat=100,
                  split_proportion=0.7,
                 rand_index=None,
@@ -391,7 +390,7 @@ importance_func=None,
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
         
         
@@ -413,7 +412,7 @@ class feature_impoReg_MLP():
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    self.importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
@@ -442,7 +441,7 @@ class feature_impoReg_MLP():
 
     
     """
-    def __init__(self,data,importance_func, 
+    def __init__(self,data,importance_func,classifier,
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
@@ -611,7 +610,7 @@ class feature_impoClass_MLP():
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    self.importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
@@ -642,7 +641,7 @@ class feature_impoClass_MLP():
 
     
     """
-    def __init__(self,data,importance_func,
+    def __init__(self,data,importance_func,classifier,
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,

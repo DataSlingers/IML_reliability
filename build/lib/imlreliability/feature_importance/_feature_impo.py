@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.utils.multiclass import unique_labels
-from sklearn.base import BaseEstimator, 
+from sklearn.base import BaseEstimator
 Mixin, TransformerMixin
 from sklearn.metrics import accuracy_score
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
