@@ -8,7 +8,22 @@ def add_noise( x, noise_type,sigma,random_index=None):
     add_noise = noise_fun(0, np.std(x)*sigma, x.shape)
 
     return(add_noise+x)
+def internal_resample(data,random_index=None, proportion=0.7,stratify=False):
+    """
+    Args:
+      data: (x,y) format
+      proportion:  percentage to split
+      random_index: set random state 
+      
+    """
+        
+    (x,y)=data
+    if stratify:
+        x_train, x_test, y_train, y_test = train_test_split(x, y,stratify=y,random_state=random_index,test_size=0.3)
+    else:
+        x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=random_index,test_size=0.3)
 
+    return (x_train, x_test, y_train, y_test)
 def jaccard_similarity(list1, list2):
     s1 = set(list1)
     s2 = set(list2)

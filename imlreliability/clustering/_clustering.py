@@ -49,7 +49,7 @@ class clustering():
                     rand_index=None,
                  user_metric= None,
                  user_metric_name='user_metric',
-                 scale=True,
+                 normalize=True,
                     verbose=True):
  
         self.sigma=sigma
@@ -63,8 +63,8 @@ class clustering():
         self.user_metric=user_metric
         self.user_metric_name=user_metric_name
  
-        if scale:
-            self.X = preprocessing.scale(self.X)
+        if normalize:
+            self.X = preprocessing.normalize(self.X)
             
             
     def fit(self, *args,**kwargs):
