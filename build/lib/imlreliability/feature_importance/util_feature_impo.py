@@ -34,7 +34,7 @@ def clean_score(s):
 
 def get_rank(score):
     score[score == 0] = 'nan'
-    score=score.astype(np.float)
+    score=score.astype(float)
 
     rank=np.zeros(len(score))
     rank[~np.isnan(score)]=(-np.abs(score[~np.isnan(score)])).argsort().argsort()+1
