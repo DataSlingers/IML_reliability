@@ -29,7 +29,7 @@ def clean_score(s):
     s=np.array(s)
     if len(s.shape)>1:
         s = s.mean(0)
-    s=s.astype(np.float)
+    s=s.astype(float)
     return s
 
 def get_rank(score):
