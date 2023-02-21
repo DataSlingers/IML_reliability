@@ -50,7 +50,7 @@ def _consistency(estimator, scores, accuracys,data_name,estimator_name,impotance
                     else:
      
                         jaccard.loc[len(jaccard)]=[data_name,method_name,'Jaccard',K,jaccard_similarity(x1,x2)]
-                        RBO.loc[len(RBO)]=[data_name,method_name,'RBO',K,rbo.RankingSimilarity(rk1, rk2).rbo()]
+                        RBO.loc[len(RBO)]=[data_name,method_name,'RBO',K,RankingSimilarity(rk1, rk2).rbo()]
             
             RBO['Consistency'],jaccard['Consistency']=[float(i) for i in RBO['Consistency']],[float(i) for i in jaccard['Consistency']]
             RBO_values = RBO
@@ -98,6 +98,7 @@ class feature_impoReg():
     
     sigma: float, level of noise. need to specify if noise_type!='split'
     
+    norm: binary. conduct data normalization 
     
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
@@ -120,11 +121,13 @@ class feature_impoReg():
                  evaluate_fun=accuracy_score,
                  n_repeat=50,
                  split_proportion=0.7,
+                 norm=True,
                 rand_index=None,
                 verbose=True):
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
         self.verbose=verbose
+        self.norm=norm
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
@@ -154,12 +157,13 @@ class feature_impoReg():
                                    data=(X,Y),
                                    random_index=i*4,
                                    proportion=self.split_proportion)
-            ## standardize 
-            x_train=preprocessing.normalize(x_train)
-            x_test =preprocessing.normalize(x_test)
-            y_train=preprocessing.normalize(y_train)
-            y_test =preprocessing.normalize(y_test)
-            
+            ## standardize
+            if norm == True:
+                x_train=normalize(scale(x_train))
+                x_test =normalize(scale(x_test))
+                y_train=normalize(scale(y_train))
+                y_test =normalize(scale(y_test))
+
             
 
             
@@ -259,7 +263,8 @@ class feature_impoClass():
     
     sigma: float, level of noise. need to specify if randomn!='split'
     
-    
+       norm: binary. conduct data normalization 
+  
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
     
@@ -282,14 +287,15 @@ class feature_impoClass():
                  evaluate_fun=accuracy_score,
                  n_repeat=100,
                  split_proportion=0.7,
-                rand_index=None,
+                 norm=True,
+               rand_index=None,
                 verbose=True):
  
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
         self.verbose=verbose
         self.n_repeat=n_repeat
-        
+        self.norm=norm
         self.data=data
         self.estimator=estimator
         self.importance_func=importance_func
@@ -312,8 +318,11 @@ class feature_impoClass():
                                    data=(X,Y),
                                    random_index=i*4,
                                    proportion=self.split_proportion,stratify=True)
-            ## standardize 
-   
+            if norm==True:
+                
+                x_train=normalize(scale(x_train))
+                x_test =normalize(scale(x_test))
+            
 
             
             self.fitted = self.estimator.fit(x_train,y_train)
@@ -445,6 +454,7 @@ class feature_impoReg_MLP():
                  evaluate_fun=accuracy_score,
                  n_repeat=50,
                  split_proportion=0.7,
+                 norm=True,
                 rand_index=None,
                 verbose=True):
         print(estimator)
@@ -452,6 +462,7 @@ class feature_impoReg_MLP():
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
         self.verbose=verbose
+        self.norm=norm
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
@@ -564,10 +575,12 @@ class feature_impoReg_MLP():
                                    random_index=i*4,
                                    proportion=self.split_proportion)
             ## standardize 
-            x_train=preprocessing.normalize(x_train)
-            x_test =preprocessing.normalize(x_test)
-            y_train=preprocessing.normalize(y_train)
-            y_test =preprocessing.normalize(y_test)
+            if norm==True:                
+                x_train=normalize(scale(x_train))
+                x_test =normalize(scale(x_test))
+
+                y_train=normalize(scale(y_train))
+                y_test =normalize(scale(y_test))
            
             fitted = self.estimator.fit(x_train,y_train)
             ##########
@@ -646,12 +659,14 @@ class feature_impoClass_MLP():
                  noise_type='split',
                  n_repeat=50,
                  split_proportion=0.7,
+                 norm=True,
                 rand_index=None,
                 verbose=True):
         print(estimator)
 
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
+        self.norm=norm
         self.verbose=verbose
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
@@ -774,9 +789,11 @@ class feature_impoClass_MLP():
                                    proportion=self.split_proportion,stratify=True)
 
             ## standardize 
-            x_train=preprocessing.normalize(x_train)
-            x_test =preprocessing.normalize(x_test)
-            
+            if norm==True:                
+                x_train=normalize(scale(x_train))
+                x_test =normalize(scale(x_test))
+
+             
             
             fitted = self.estimator.fit(x_train,y_train)
             ##########
