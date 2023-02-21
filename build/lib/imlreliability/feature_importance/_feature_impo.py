@@ -158,7 +158,7 @@ class feature_impoReg():
                                    random_index=i*4,
                                    proportion=self.split_proportion)
             ## standardize
-            if norm == True:
+            if self.norm == True:
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
                 y_train=normalize(scale(y_train))
@@ -318,7 +318,7 @@ class feature_impoClass():
                                    data=(X,Y),
                                    random_index=i*4,
                                    proportion=self.split_proportion,stratify=True)
-            if norm==True:
+            if self.norm==True:
                 
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
@@ -575,7 +575,7 @@ class feature_impoReg_MLP():
                                    random_index=i*4,
                                    proportion=self.split_proportion)
             ## standardize 
-            if norm==True:                
+            if self.norm==True:
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
 
@@ -789,7 +789,7 @@ class feature_impoClass_MLP():
                                    proportion=self.split_proportion,stratify=True)
 
             ## standardize 
-            if norm==True:                
+            if self.norm==True:                
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
 
