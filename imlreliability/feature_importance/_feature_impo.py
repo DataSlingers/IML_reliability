@@ -313,9 +313,7 @@ class feature_impoClass():
                                    random_index=i*4,
                                    proportion=self.split_proportion,stratify=True)
             ## standardize 
-            x_train=preprocessing.normalize(x_train)
-            x_test =preprocessing.normalize(x_test)
-            
+   
 
             
             self.fitted = self.estimator.fit(x_train,y_train)
@@ -366,20 +364,20 @@ class feature_impoClass():
 
                 except:
                     s = explainer(x_test,check_additivity=False)[0].values.T.tolist()
-            elif np.isin('lime',impo_pack):    
-                explainer =self.importance_func(x_train,
-                            class_names=list(set(y_train)),
-                           discretize_continuous=True)
+#             elif np.isin('lime',impo_pack):    
+#                 explainer =self.importance_func(x_train,
+#                             class_names=list(set(y_train)),
+#                            discretize_continuous=True)
 
                 
-                fi = [] ## randomly choose 100 observations  
-                r = np.random.RandomState()
-                idx_I = np.sort(r.choice(len(x_test), size=max(100,len(x_test)), replace=False)) # uniform sampling of subset of observations
-                for idd in idx_I:
-                    exp = explainer.explain_instance(x_test[idd], yhat, num_features=self.M)
-                    mapp = exp.as_map()
-                    fi.append([a[1] for a in sorted(mapp[list(mapp.keys())[0]])])
-                s=np.array(fi).mean(0)
+#                 fi = [] ## randomly choose 100 observations  
+#                 r = np.random.RandomState()
+#                 idx_I = np.sort(r.choice(len(x_test), size=max(100,len(x_test)), replace=False)) # uniform sampling of subset of observations
+#                 for idd in idx_I:
+#                     exp = explainer.explain_instance(x_test[idd], yhat, num_features=self.M)
+#                     mapp = exp.as_map()
+#                     fi.append([a[1] for a in sorted(mapp[list(mapp.keys())[0]])])
+#                 s=np.array(fi).mean(0)
 
 
             elif np.isin('_permutation_importance',impo_pack):
