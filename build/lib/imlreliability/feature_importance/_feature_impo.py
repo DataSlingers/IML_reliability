@@ -739,7 +739,8 @@ class feature_impoClass_MLP():
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
-        self.get_prediction_consistency=get_prediction_consistency        (self.X,self.Y) = self.data
+        self.get_prediction_consistency=get_prediction_consistency    
+        (self.X,self.Y) = self.data
         self.M=len(self.X[0])
         self.num_class=len(set(self.Y))
         self.rand_index=rand_index
