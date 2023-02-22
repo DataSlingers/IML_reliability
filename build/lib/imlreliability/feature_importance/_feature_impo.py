@@ -894,9 +894,15 @@ class feature_impoClass_MLP():
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
 
-             
-            
-            fitted = self.estimator.fit(x_train,y_train)
+            ################
+            #### Need to use hot-encodede verion of response 
+            yy_train,yy_test = (pd.get_dummies(y_train)),(pd.get_dummies(y_test))
+            yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
+            yy_train = np.array(yy_train)
+            try:
+                fitted = self.estimator.fit(x_train,y_train)
+            except:
+                fitted = self.estimator.fit(x_train,yy_train)
             ##########
             model_json = self.estimator.to_json()
             with open("mlp_"+str(i)+".json", "w") as json_file:
@@ -911,8 +917,11 @@ class feature_impoClass_MLP():
 
             
     ##### different in MLP!
-    
-            acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
+            try:
+                acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
+            except:
+                acc = self.estimator.evaluate(x_test, yy_test, batch_size=10)
+            
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
