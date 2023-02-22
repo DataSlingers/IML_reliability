@@ -813,6 +813,7 @@ class feature_impoClass_MLP():
         if hasattr(self.importance_func.__class__, '__call__') and self.importance_func.__class__!=str:
         ## if importance_func is a function
             impo_pack = self.importance_func.__module__.split('.')
+            print(impo_pack)
             if np.isin('permutation_importance',impo_pack):
                 ### need _base_model_classification instead of _base_model_classification()
                 my_model = KerasClassifier(build_fn=self._base_model_classification)
@@ -821,24 +822,7 @@ class feature_impoClass_MLP():
                 s=perm.feature_importances_
             
             
-            elif np.isin('deeplift',impo_pack):
-                print('DeepLift')
-                dl_model = kc.convert_model_from_saved_files(
-                                            h5_file=self.saved_model_file,
-                                            nonlinear_mxts_mode=(self.importance_func))
 
-                dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
-                                                            target_layer_idx=self.target_layer)
-                method_name, score_func=self.importance_func, dl_func
-                print("Computing scores for:",method_name)
-                method_to_task_to_scores = {}
-                scor = np.array(score_func(
-                                task_idx=0,
-                                input_data_list=[x_test],
-                                input_references_list=[np.zeros_like(x_test)],
-                                batch_size=100,
-                                progress_update=None))
-                s=scor.mean(0)    
             else:
                 ###### Loac MLP model
                 model = load_model("mlp_"+str(self.i)+".h5")
@@ -869,11 +853,33 @@ class feature_impoClass_MLP():
                         attributions = de.explain(self.importance_func, target_tensor, input_tensor, xs, ys=ys)
 
                 s=attributions.mean(0)
+            else:
+                try:
+                    impo_pack = (eval(self.importance_func.split('.')[0] + "()")).__module__.split('.')
+                    if np.isin('deeplift',impo_pack):
+                        print('DeepLift')
+
+                        dl_model = kc.convert_model_from_saved_files(
+                                                    h5_file=self.saved_model_file,
+                                                    nonlinear_mxts_mode=(self.importance_func))
+
+                        dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
+                                                                    target_layer_idx=self.target_layer)
+                        method_name, score_func=self.importance_func, dl_func
+                        print("Computing scores for:",method_name)
+                        method_to_task_to_scores = {}
+                        scor = np.array(score_func(
+                                        task_idx=0,
+                                        input_data_list=[x_test],
+                                        input_references_list=[np.zeros_like(x_test)],
+                                        batch_size=100,
+                                        progress_update=None))
+                        s=scor.mean(0)   
+                except:
+                    print('Invalid feature importance function')
         print(s)
-        if s!=None:
-            return clean_score(s)
-        else:
-            print('Invalid feature importance function')
+        return clean_score(s)
+        
 
     def fit(self, *args,**kwargs):
         self.scores= []
