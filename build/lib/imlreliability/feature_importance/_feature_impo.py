@@ -9,7 +9,7 @@ from sklearn.preprocessing import scale,normalize
 import collections
 import tensorflow as tf
 tf.config.run_functions_eagerly(True)
-
+import DeepExplain
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Activation
 from tensorflow.python.keras.models import model_from_json
@@ -661,7 +661,6 @@ class feature_impoReg_MLP():
 
                 y_train=normalize(scale(y_train))
                 y_test =normalize(scale(y_test))
-           
             fitted = self.estimator.fit(x_train,y_train)
             ##########
             model_json = self.estimator.to_json()
@@ -673,7 +672,7 @@ class feature_impoReg_MLP():
             ######################
             self.saved_model_file= "mlp_"+str(i)+".h5"
         
-            ss=self._impo_score(x_train,y_train,x_test)
+            s=self._impo_score(x_train,y_train,x_test)
 
             
     ##### different in MLP!
@@ -817,9 +816,9 @@ class feature_impoClass_MLP():
         ## if importance_func is a function
             impo_pack = self.importance_func.__module__.split('.')
             if np.isin('permutation_importance',impo_pack):
-                perm = self.importance_func(self.estimator).fit(x_train,y_train)
+                ### need _base_model_classification instead of _base_model_classification()
+                perm = self.importance_func(build_fn=_base_model_classification).fit(x_train,y_train)
                 s=perm.feature_importances_
-                print(s)
             else:
                 ###### Loac MLP model
                 model = load_model("mlp_"+str(self.i)+".h5")
@@ -831,7 +830,8 @@ class feature_impoClass_MLP():
                     s = self.importance_func(model,x_train, y_train)
   
         else: ## if input is string 
-            if np.isin(self.importance_func,de_methods):        
+            if np.isin(self.importance_func,de_methods):  
+                print(self.importance_func)
                 model = load_model(self.saved_model_file,compile=False)
                 print('DeepExplain')
                 with DeepExplain(session=K.get_session()) as de:  # <-- init DeepExplain context
@@ -902,29 +902,34 @@ class feature_impoClass_MLP():
             yy_train,yy_test = (pd.get_dummies(y_train)),(pd.get_dummies(y_test))
             yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
             yy_train = np.array(yy_train)
-            try:
-                fitted = self.estimator.fit(x_train,y_train)
-            except:
-                fitted = self.estimator.fit(x_train,yy_train)
-            ##########
-            model_json = self.estimator.to_json()
-            with open("mlp_"+str(i)+".json", "w") as json_file:
-                    json_file.write(model_json)
-
-                # serialize weights to HDF5
-            self.estimator.save("mlp_"+str(i)+".h5")
-            ######################
-            self.saved_model_file= "mlp_"+str(i)+".h5"
-        
-            ss=self._impo_score(x_train,y_train,x_test)
-
             
-    ##### different in MLP!
+            if self.importance_func !=PermutationImportance:
+
+                try:
+                    fitted = self.estimator.fit(x_train,y_train)
+                except:
+                    fitted = self.estimator.fit(x_train,yy_train)
+                ##########
+                model_json = self.estimator.to_json()
+                with open("mlp_"+str(i)+".json", "w") as json_file:
+                        json_file.write(model_json)
+
+                    # serialize weights to HDF5
+                self.estimator.save("mlp_"+str(i)+".h5")
+                ######################
+                self.saved_model_file= "mlp_"+str(i)+".h5"
+
+                s=self._impo_score(x_train,y_train,x_test)
+
+            else:                
+                s = self._impo_score(x_train,y_train, x_test)
+                
+        ##### different in MLP!
             try:
                 acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
             except:
                 acc = self.estimator.evaluate(x_test, yy_test, batch_size=10)
-            
+
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
