@@ -902,8 +902,9 @@ class feature_impoClass_MLP():
             yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
             yy_train = np.array(yy_train)
             
-            if self.importance_func !=PermutationImportance:
-
+            if np.isin('permutation_importance',impo_pack):
+                s = self._impo_score(x_train,y_train, x_test)
+            else:
                 try:
                     fitted = self.estimator.fit(x_train,y_train)
                 except:
@@ -920,8 +921,6 @@ class feature_impoClass_MLP():
 
                 s=self._impo_score(x_train,y_train,x_test)
 
-            else:                
-                s = self._impo_score(x_train,y_train, x_test)
                 
         ##### different in MLP!
             try:
