@@ -816,8 +816,8 @@ class feature_impoClass_MLP():
             if np.isin('permutation_importance',impo_pack):
                 ### need _base_model_classification instead of _base_model_classification()
                 my_model = KerasClassifier(build_fn=self._base_model_classification)
-                perm = self.importance_func(my_model).fit(x_train,y_train)
-
+                my_model.fit(x_train,y_train)
+                perm = self.importance_func(my_model).fit(x_test,y_test)
                 s=perm.feature_importances_
             else:
                 ###### Loac MLP model

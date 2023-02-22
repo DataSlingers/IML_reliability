@@ -794,7 +794,7 @@ class feature_impoClass_MLP():
     def _impo_score(self,
            x_train,
            y_train,
-           x_test):
+           x_test,y_test):
         
         de_methods = [
                         'zero',
@@ -904,7 +904,7 @@ class feature_impoClass_MLP():
             yy_train = np.array(yy_train)
             
             if np.isin('permutation_importance',self.importance_func.__module__.split('.')):
-                s = self._impo_score(x_train,y_train, x_test)
+                s = self._impo_score(x_train,y_train, x_test,y_test)
             else:
                 try:
                     fitted = self.estimator.fit(x_train,y_train)
@@ -920,7 +920,7 @@ class feature_impoClass_MLP():
                 ######################
                 self.saved_model_file= "mlp_"+str(i)+".h5"
 
-                s=self._impo_score(x_train,y_train,x_test)
+                s=self._impo_score(x_train,y_train,x_test,y_test)
 
                 
         ##### different in MLP!
