@@ -15,9 +15,8 @@ from tensorflow.python.keras.models import model_from_json
 from tensorflow.python.keras.models import load_model
 from tensorflow.python.keras import backend as K
 from tensorflow import keras
-
-# from tensorflow.python.keras.wrappers.scikit_learn import KerasRegressor
-# from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 
 from .rbo import RankingSimilarity
 from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_similarity)
