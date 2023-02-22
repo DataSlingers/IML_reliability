@@ -21,7 +21,7 @@ from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_s
 
 
 
-def _consistency(estimator, scores, accuracys, test_yhat, data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+def _consistency(estimator, scores, accuracys, data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
         
         
         
@@ -73,17 +73,28 @@ def _consistency(estimator, scores, accuracys, test_yhat, data_name,estimator_na
             
             
             ### prediction consistency by classification purity 
-            if len(test_yhat)>0:
-                entropy= np.apply_along_axis(_get_entropy, 0, test_yhat)
-                entropy=pd.DataFrame(entropy)
-                entropy['data']=data_name
-                entropy['model']=estimator_name
-
-            else:
-                entropy=None
-            return results,accuracy,entropy
-        
-def _get_entropy(x):
+def _pred_consistency_class(test_yhat, 
+                            data_name,estimator_name):
+    
+        v= np.apply_along_axis(_get_entropy_class, 0, test_yhat)
+        entropy=pd.DataFrame(v)
+        entropy.columns=['Entropy']
+        entropy['data']=data_name
+        entropy['model']=estimator_name
+        entropy['Purity'] = 1-(v-min(v))/max(v)-min(v)
+        return entropy
+def _pred_consistency_reg(test_yhat, 
+                            data_name,estimator_name):
+    
+        v= np.apply_along_axis(_get_std_reg, 0, test_yhat)
+        entropy=pd.DataFrame(v)
+        entropy.columns=['sd']
+        entropy['data']=data_name
+        entropy['model']=estimator_name
+        entropy['Purity']= np.exp(-v)
+        return entropy        
+    
+def _get_entropy_class(x):
     x = x[x!='NA']
     count=collections.Counter(x)
     entropy=0
@@ -92,6 +103,14 @@ def _get_entropy(x):
         p =count[i]/len(x)
         entropy += p*np.log(p)
     return -entropy
+
+def _get_std_reg(x):
+    x = x[x!='NA']
+    x=[float(i) for i in x]
+    return np.std(x)        
+
+
+
 class feature_impoReg():
     """ 
     Parameters
@@ -258,10 +277,12 @@ class feature_impoReg():
         return clean_score(s)
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
         
-        
-        
+
+        if self.get_prediction_consistency ==True:
+            self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
+                            data_name,estimator_name)        
         
         
 class feature_impoClass():
@@ -434,10 +455,11 @@ class feature_impoClass():
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
         
-        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
 
-        
-
+        if self.get_prediction_consistency ==True:
+            self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
+                            data_name,estimator_name)
 
 class feature_impoReg_MLP():
     """ 
@@ -645,8 +667,11 @@ class feature_impoReg_MLP():
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
        
-        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
 
+        if self.get_prediction_consistency ==True:
+            self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
+                            data_name,estimator_name)
 
 class feature_impoClass_MLP():
     """ 
@@ -865,6 +890,9 @@ class feature_impoClass_MLP():
                 
                 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
-        
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+
+        if self.get_prediction_consistency ==True:
+            self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
+                            data_name,estimator_name) 
                     
