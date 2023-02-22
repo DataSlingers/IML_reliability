@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.base import is_classifier, is_regressor
 from sklearn.preprocessing import scale,normalize
-
+import collections
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Activation
 from tensorflow.python.keras.models import model_from_json

@@ -380,6 +380,7 @@ class feature_impoClass():
             self.fitted = self.estimator.fit(x_train,y_train)
             s=self._impo_score(x_train,y_train,x_test)
             this_yhat = self.fitted.predict(x_test)
+            print(this_yhat)
             acc = self.evaluate_fun(this_yhat,y_test)
                 
             self.scores.append(s)
