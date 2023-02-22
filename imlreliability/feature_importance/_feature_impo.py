@@ -869,8 +869,8 @@ class feature_impoClass_MLP():
                         attributions = de.explain(self.importance_func, target_tensor, input_tensor, xs, ys=ys)
 
                 s=attributions.mean(0)
-
-        if not s:
+        print(s)
+        if s!=None:
             return clean_score(s)
         else:
             print('Invalid feature importance function')

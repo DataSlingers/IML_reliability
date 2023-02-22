@@ -795,7 +795,7 @@ class feature_impoClass_MLP():
            x_train,
            y_train,
            x_test,y_test):
-        s=0
+        s=None
         de_methods = [
                         'zero',
                         'saliency',
@@ -870,7 +870,7 @@ class feature_impoClass_MLP():
 
                 s=attributions.mean(0)
 
-        try s:
+        if not s:
             return clean_score(s)
         else:
             print('Invalid feature importance function')
