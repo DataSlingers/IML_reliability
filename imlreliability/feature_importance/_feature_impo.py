@@ -21,7 +21,7 @@ from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_s
 
 
 
-def _consistency(estimator, scores, accuracys,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+def _consistency(estimator, scores, accuracys, test_yhat, data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
         
         
         
@@ -60,7 +60,7 @@ def _consistency(estimator, scores, accuracys,data_name,estimator_name,impotance
             jaccard_mean=jaccard.groupby(['data','method','criteria','K'],as_index=False).mean('Consistency')
             
             accuracy = pd.DataFrame({'data':data_name,
-                                          'type':estimator_name,
+                                          'model':estimator_name,
 #                                           'nosie':noise_type,
                                           'Accuracy':accuracys
                                          
@@ -68,9 +68,30 @@ def _consistency(estimator, scores, accuracys,data_name,estimator_name,impotance
             results = pd.DataFrame(np.vstack((RBO_mean,jaccard_mean)),columns = RBO_mean.columns)
             results['Accuracy'] = round(np.mean(accuracys),3)
             results['Consistency'] = [round(i,3) for i in results['Consistency']]
-            return results,accuracy 
-        
+            
+            
+            
+            
+            ### prediction consistency by classification purity 
+            if len(test_yhat)>0:
+                entropy= np.apply_along_axis(_get_entropy, 0, test_yhat)
+                entropy=pd.DataFrame(entropy)
+                entropy['data']=data_name
+                entropy['model']=estimator_name
 
+            else:
+                entropy=None
+            return results,accuracy,entropy
+        
+def _get_entropy(x):
+    x = x[x!='NA']
+    count=collections.Counter(x)
+    entropy=0
+
+    for i in count:
+        p =count[i]/len(x)
+        entropy += p*np.log(p)
+    return -entropy
 class feature_impoReg():
     """ 
     Parameters
@@ -121,8 +142,10 @@ class feature_impoReg():
                  evaluate_fun=accuracy_score,
                  n_repeat=50,
                  split_proportion=0.7,
+                 get_prediction_consistency=True,
                  norm=True,
                 rand_index=None,
+                 
                 verbose=True):
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
@@ -132,7 +155,8 @@ class feature_impoReg():
         self.importance_func=importance_func        
         self.data=data
         (self.X,self.Y) = self.data
- 
+        self.rand_index=rand_index
+        self.get_prediction_consistency=get_prediction_consistency
         self.M=len(self.X[0])
         if not estimator: ## default regression model 
             self.estimator = self._base_model_regression()
@@ -145,18 +169,17 @@ class feature_impoReg():
     def fit(self, *args,**kwargs):
         self.scores= []
         self.accuracys = []
+        self.test_yhat=[]
         (X,Y) = self.data
         self.M=len(X[0])
-
         for i in range(self.n_repeat):
             print(i)
             if self.verbose==True:
                 print('Iter: ',i)
-           
-            x_train, x_test, y_train, y_test = internal_resample(
-                                   data=(X,Y),
-                                   random_index=i*4,
+            x_train, x_test, y_train, y_test,indices_train,indices_test =  internal_resample(X,Y,
+                                   random_index=i*self.rand_index,
                                    proportion=self.split_proportion)
+            
             ## standardize
             if self.norm == True:
                 x_train=normalize(scale(x_train))
@@ -172,7 +195,12 @@ class feature_impoReg():
             acc = self.evaluate_fun(self.fitted.predict(x_test),y_test)
 
             self.scores.append(s)
-            self.accuracys.append(acc)            
+            self.accuracys.append(acc)   
+            if self.get_prediction_consistency ==True:
+                this_pred = np.repeat('NA',N)
+                this_pred[indices_test]=this_yhat
+                self.test_yhat.append(this_pred)
+                
     def _impo_score(self,
            x_train,
            y_train,
@@ -230,7 +258,7 @@ class feature_impoReg():
         return clean_score(s)
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
         
         
         
@@ -287,8 +315,8 @@ class feature_impoClass():
                  evaluate_fun=accuracy_score,
                  n_repeat=100,
                  split_proportion=0.7,
-                 norm=True,
-               rand_index=None,
+                get_prediction_consistency=True,
+                 rand_index=None,
                 verbose=True):
  
         self.evaluate_fun=evaluate_fun
@@ -299,24 +327,25 @@ class feature_impoClass():
         self.data=data
         self.estimator=estimator
         self.importance_func=importance_func
-
-
+        self.rand_index=rand_index
+        self.get_prediction_consistency=get_prediction_consistency
     def fit(self, *args,**kwargs):
         self.scores= []
         self.accuracys = []
+        self.test_yhat = []
         (X,Y) = self.data
         self.M=len(X[0])
         num_class=len(set(Y))
-        print(num_class)
-
+        
+        
+        
         for i in range(self.n_repeat):
             print(i)
             if self.verbose==True:
                 print('Iter: ',i)
-           
-            x_train, x_test, y_train, y_test = internal_resample(
-                                   data=(X,Y),
-                                   random_index=i*4,
+            x_train, x_test, y_train, y_test,indices_train,indices_test = internal_resample(
+                                   X,Y,
+                                   random_index=i*self.rand_index,
                                    proportion=self.split_proportion,stratify=True)
             if self.norm==True:
                 
@@ -327,10 +356,16 @@ class feature_impoClass():
             
             self.fitted = self.estimator.fit(x_train,y_train)
             s=self._impo_score(x_train,y_train,x_test)
-            acc = self.evaluate_fun(self.fitted.predict(x_test),y_test)
-
+            this_yhat = self.fitted.predict(x_test)
+            acc = self.evaluate_fun(this_yhat,y_test)
+                
             self.scores.append(s)
-            self.accuracys.append(acc)            
+            self.accuracys.append(acc)    
+            if self.get_prediction_consistency ==True:
+                this_pred = np.repeat('NA',N)
+                this_pred[indices_test]=this_yhat
+                self.test_yhat.append(this_pred)
+    
     def _impo_score(self,
            x_train,
            y_train,
@@ -398,9 +433,9 @@ class feature_impoClass():
         return clean_score(s)
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
         
-        
+        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
+
         
 
 
@@ -454,6 +489,7 @@ class feature_impoReg_MLP():
                  evaluate_fun=accuracy_score,
                  n_repeat=50,
                  split_proportion=0.7,
+                get_prediction_consistency=True,
                  norm=True,
                 rand_index=None,
                 verbose=True):
@@ -466,6 +502,8 @@ class feature_impoReg_MLP():
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
+        self.get_prediction_consistency=get_prediction_consistency
+        self.rand_index=rand_index
         (self.X,self.Y) = self.data
         self.M=len(self.X[0])
         if not estimator: ## default regression model 
@@ -563,18 +601,16 @@ class feature_impoReg_MLP():
     def fit(self, *args,**kwargs):
         self.scores= []
         self.accuracys = []
-  
+        self.test_yhat=[]
         
         for i in range(self.n_repeat):
             self.i=i
             if self.verbose==True:
                 print('Iter: ',i)
-           
-            (x_train, x_test, y_train, y_test)= _internal_resample(
-                                   data=(self.X,self.Y),
-                                   random_index=i*4,
+            x_train, x_test, y_train, y_test,indices_train,indices_test =  internal_resample(X,Y,
+                                   random_index=i*self.rand_index,
                                    proportion=self.split_proportion)
-            ## standardize 
+
             if self.norm==True:
                 x_train=normalize(scale(x_train))
                 x_test =normalize(scale(x_test))
@@ -598,12 +634,18 @@ class feature_impoReg_MLP():
             
     ##### different in MLP!
             acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
+            this_yhat = model.predict(x_test, batch_size=10)
             self.scores.append(s)
             self.accuracys.append(acc)
+            if self.get_prediction_consistency ==True:
+                this_pred = np.repeat('NA',N)
+                this_pred[indices_test]=this_yhat[0]                
+                self.test_yhat.append(this_pred)
+                    
 
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
-        
+       
+        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
 
 
 class feature_impoClass_MLP():
@@ -659,6 +701,7 @@ class feature_impoClass_MLP():
                  noise_type='split',
                  n_repeat=50,
                  split_proportion=0.7,
+                get_prediction_consistency=True,
                  norm=True,
                 rand_index=None,
                 verbose=True):
@@ -671,10 +714,10 @@ class feature_impoClass_MLP():
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
-        (self.X,self.Y) = self.data
+        self.get_prediction_consistency=get_prediction_consistency        (self.X,self.Y) = self.data
         self.M=len(self.X[0])
         self.num_class=len(set(self.Y))
-
+        self.rand_index=rand_index
         self.Y = pd.get_dummies(self.Y)
         if not estimator: ## default classification
             self.estimator = self._base_model_classification()
@@ -776,17 +819,17 @@ class feature_impoClass_MLP():
     def fit(self, *args,**kwargs):
         self.scores= []
         self.accuracys = []
-  
+        self.test_yhat=[]
         
         for i in range(self.n_repeat):
             self.i=i
             if self.verbose==True:
                 print('Iter: ',i)
            
-            x_train, x_test, y_train, y_test= _internal_resample(
-                                   data=(self.X,self.Y),
-                                   random_index=i*4,
+            x_train, x_test, y_train, y_test,indices_train,indices_test =  internal_resample(X,Y,
+                                   random_index=i*self.rand_index,
                                    proportion=self.split_proportion,stratify=True)
+
 
             ## standardize 
             if self.norm==True:                
@@ -810,11 +853,18 @@ class feature_impoClass_MLP():
 
             
     ##### different in MLP!
+    
             acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
             self.scores.append(s)
             self.accuracys.append(acc)
-
+            if self.get_prediction_consistency ==True:
+                this_yhat = model.predict(x_test, batch_size=10)
+                this_pred = np.repeat('NA',N)
+                this_pred[indices_test]=[np.argmax(a) for a in this_yhat]
+                self.test_yhat.append(this_pred)
+                
+                
     def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy,self.entropy =_consistency(self.estimator, self.scores, self.accuracys,self.test_yhat, data_name,estimator_name,impotance_func_name, Ks)
         
                     
