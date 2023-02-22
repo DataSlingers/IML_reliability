@@ -816,7 +816,7 @@ class feature_impoClass_MLP():
             impo_pack = self.importance_func.__module__.split('.')
             if np.isin('permutation_importance',impo_pack):
                 ### need _base_model_classification instead of _base_model_classification()
-                perm = self.importance_func(build_fn=_base_model_classification).fit(x_train,y_train)
+                perm = self.importance_func(build_fn=self._base_model_classification).fit(x_train,y_train)
                 s=perm.feature_importances_
             else:
                 ###### Loac MLP model
