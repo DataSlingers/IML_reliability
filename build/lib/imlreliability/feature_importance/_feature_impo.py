@@ -7,12 +7,16 @@ from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.base import is_classifier, is_regressor
 from sklearn.preprocessing import scale,normalize
 import collections
+import tensorflow as tf
+tf.config.run_functions_eagerly(True)
+
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Activation
 from tensorflow.python.keras.models import model_from_json
 from tensorflow.python.keras.models import load_model
 from tensorflow.python.keras import backend as K
 from tensorflow import keras
+
 # from tensorflow.python.keras.wrappers.scikit_learn import KerasRegressor
 # from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
@@ -751,7 +755,6 @@ class feature_impoClass_MLP():
                  norm=True,
                 rand_index=None,
                 verbose=True):
-        print(estimator)
 
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
@@ -776,7 +779,7 @@ class feature_impoClass_MLP():
             self.estimator=estimator
         
         
-
+        print(estimator)
         
     def _base_model_classification(self):
         model = Sequential()
