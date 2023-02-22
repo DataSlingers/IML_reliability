@@ -337,6 +337,7 @@ class feature_impoClass():
                  n_repeat=100,
                  split_proportion=0.7,
                 get_prediction_consistency=True,
+                 norm=True,
                  rand_index=None,
                 verbose=True):
  

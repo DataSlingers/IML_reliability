@@ -15,7 +15,7 @@ def internal_resample(x,y,random_index=None, proportion=0.7,stratify=False):
     else:
         x_train, x_test, y_train, y_test,indices_train,indices_test = train_test_split(x, y,indices,random_state=random_index,test_size=0.3)
 
-    return (x_train, x_test, y_train, y_test)
+    return (x_train, x_test, y_train, y_test,indices_train,indices_test)
 def add_noise( x, noise_type,sigma,random_index=None):
     
     noise_fun = getattr(np.random, noise_type)
