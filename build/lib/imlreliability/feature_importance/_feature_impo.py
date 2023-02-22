@@ -795,7 +795,7 @@ class feature_impoClass_MLP():
            x_train,
            y_train,
            x_test,y_test):
-        
+        s=0
         de_methods = [
                         'zero',
                         'saliency',
@@ -819,6 +819,26 @@ class feature_impoClass_MLP():
                 my_model.fit(x_train,y_train)
                 perm = self.importance_func(my_model).fit(x_test,y_test)
                 s=perm.feature_importances_
+            
+            
+            elif np.isin('deeplift',impo_pack):
+                print('DeepLift')
+                dl_model = kc.convert_model_from_saved_files(
+                                            h5_file=self.saved_model_file,
+                                            nonlinear_mxts_mode=(self.importance_func))
+
+                dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
+                                                            target_layer_idx=self.target_layer)
+                method_name, score_func=self.importance_func, dl_func
+                print("Computing scores for:",method_name)
+                method_to_task_to_scores = {}
+                scor = np.array(score_func(
+                                task_idx=0,
+                                input_data_list=[x_test],
+                                input_references_list=[np.zeros_like(x_test)],
+                                batch_size=100,
+                                progress_update=None))
+                s=scor.mean(0)    
             else:
                 ###### Loac MLP model
                 model = load_model("mlp_"+str(self.i)+".h5")
@@ -828,7 +848,12 @@ class feature_impoClass_MLP():
                 else: 
                     ##user defined function 
                     s = self.importance_func(model,x_train, y_train)
-  
+              
+            
+                     
+           
+                        
+                        
         else: ## if input is string 
             if np.isin(self.importance_func,de_methods):  
                 print(self.importance_func)
@@ -844,36 +869,11 @@ class feature_impoClass_MLP():
                         attributions = de.explain(self.importance_func, target_tensor, input_tensor, xs, ys=ys)
 
                 s=attributions.mean(0)
-            else:
-                #### input string of functions from deeplift package ['NonlinearMxtsMode.RevealCancel',
-                ###                                            ]
-                try: 
-                    ########
-                    ### check if it's a function from deeplift package 
-                    #####
-                    impo_pack = (eval(self.importance_func.split('.')[0] + "()")).__module__.split('.')
-                    if np.isin('deeplift',impo_pack):
-                        print('DeepLift')
-                        dl_model = kc.convert_model_from_saved_files(
-                                                    h5_file=self.saved_model_file,
-                                                    nonlinear_mxts_mode=eval(self.importance_func))
 
-                        dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
-                                                                    target_layer_idx=self.target_layer)
-                        method_name, score_func=self.importance_func, dl_func
-                        print("Computing scores for:",method_name)
-                        method_to_task_to_scores = {}
-                        scor = np.array(score_func(
-                                        task_idx=0,
-                                        input_data_list=[x_test],
-                                        input_references_list=[np.zeros_like(x_test)],
-                                        batch_size=100,
-                                        progress_update=None))
-                        s=scor.mean(0)
-
-                except:
-                    print('Invalid feature importance function')
-        return clean_score(s)
+        if s==0:
+            print('Invalid feature importance function')
+        else:
+            return clean_score(s)
 
 
     def fit(self, *args,**kwargs):

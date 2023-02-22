@@ -659,7 +659,7 @@ class feature_impoReg_MLP():
 
                 y_train=normalize(scale(y_train))
                 y_test =normalize(scale(y_test))
-            fitted = self.estimator.fit(x_train,y_train)
+            self.estimator.fit(x_train,y_train)
             ##########
             model_json = self.estimator.to_json()
             with open("mlp_"+str(i)+".json", "w") as json_file:
@@ -675,7 +675,7 @@ class feature_impoReg_MLP():
             
     ##### different in MLP!
             acc = self.estimator.evaluate(x_test, y_test, batch_size=10)
-            this_yhat = model.predict(x_test, batch_size=10)
+            this_yhat = self.estimator.predict(x_test, batch_size=10)
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
@@ -870,11 +870,10 @@ class feature_impoClass_MLP():
 
                 s=attributions.mean(0)
 
-        if s==0:
-            print('Invalid feature importance function')
-        else:
+        try s:
             return clean_score(s)
-
+        else:
+            print('Invalid feature importance function')
 
     def fit(self, *args,**kwargs):
         self.scores= []
@@ -903,9 +902,9 @@ class feature_impoClass_MLP():
             yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
             yy_train = np.array(yy_train)
             try:
-                fitted = self.estimator.fit(x_train,y_train)
+                self.estimator.fit(x_train,y_train)
             except:
-                fitted = self.estimator.fit(x_train,yy_train)
+                self.estimator.fit(x_train,yy_train)
             if  self.importance_func .__class__!=str and np.isin('permutation_importance',self.importance_func.__module__.split('.')):
                 s = self._impo_score(x_train,y_train, x_test,y_test)
             else:
@@ -932,7 +931,7 @@ class feature_impoClass_MLP():
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
-                this_yhat = fitted.predict(x_test, batch_size=10)
+                this_yhat = self.estimator.predict(x_test, batch_size=10)
                 this_yhat = [np.argmax(a) for a in this_yhat]
                 this_pred = list(np.repeat('NA',len(X)))
                 for a,item in enumerate(indices_test):
