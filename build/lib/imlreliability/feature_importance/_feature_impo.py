@@ -380,7 +380,6 @@ class feature_impoClass():
             self.fitted = self.estimator.fit(x_train,y_train)
             s=self._impo_score(x_train,y_train,x_test)
             this_yhat = self.fitted.predict(x_test)
-            print(this_yhat)
             acc = self.evaluate_fun(this_yhat,y_test)
                 
             self.scores.append(s)
@@ -388,6 +387,7 @@ class feature_impoClass():
             if self.get_prediction_consistency ==True:
                 this_pred = np.repeat('NA',len(X))
                 this_pred[indices_test]=this_yhat
+                print(this_pred)
                 self.test_yhat.append(this_pred)
     
     def _impo_score(self,
