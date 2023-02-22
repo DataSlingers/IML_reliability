@@ -216,7 +216,7 @@ class feature_impoReg():
             self.scores.append(s)
             self.accuracys.append(acc)   
             if self.get_prediction_consistency ==True:
-                this_pred = np.repeat('NA',N)
+                this_pred = np.repeat('NA',len(X))
                 this_pred[indices_test]=this_yhat
                 self.test_yhat.append(this_pred)
                 
@@ -384,7 +384,7 @@ class feature_impoClass():
             self.scores.append(s)
             self.accuracys.append(acc)    
             if self.get_prediction_consistency ==True:
-                this_pred = np.repeat('NA',N)
+                this_pred = np.repeat('NA',len(X))
                 this_pred[indices_test]=this_yhat
                 self.test_yhat.append(this_pred)
     
@@ -661,7 +661,7 @@ class feature_impoReg_MLP():
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
-                this_pred = np.repeat('NA',N)
+                this_pred = np.repeat('NA',len(X))
                 this_pred[indices_test]=this_yhat[0]                
                 self.test_yhat.append(this_pred)
                     
@@ -886,7 +886,7 @@ class feature_impoClass_MLP():
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
                 this_yhat = model.predict(x_test, batch_size=10)
-                this_pred = np.repeat('NA',N)
+                this_pred = np.repeat('NA',len(X))
                 this_pred[indices_test]=[np.argmax(a) for a in this_yhat]
                 self.test_yhat.append(this_pred)
                 

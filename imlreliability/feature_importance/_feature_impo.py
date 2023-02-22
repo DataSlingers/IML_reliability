@@ -71,8 +71,9 @@ def _consistency(estimator, scores, accuracys, data_name,estimator_name,impotanc
             
             
             
-            
-            ### prediction consistency by classification purity 
+            return results,accuracy
+        
+### prediction consistency by classification purity 
 def _pred_consistency_class(test_yhat, 
                             data_name,estimator_name):
     
