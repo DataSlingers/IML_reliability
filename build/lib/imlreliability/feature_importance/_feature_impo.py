@@ -217,7 +217,7 @@ class feature_impoReg():
             self.scores.append(s)
             self.accuracys.append(acc)   
             if self.get_prediction_consistency ==True:
-                this_pred = list(np.repeat('NA',len(X))
+                this_pred = list(np.repeat('NA',len(X)))
                 for a,item in enumerate(indices_test):
                     this_pred[item] = this_yhat[a]    
 
@@ -387,7 +387,7 @@ class feature_impoClass():
             self.scores.append(s)
             self.accuracys.append(acc)    
             if self.get_prediction_consistency ==True:
-                this_pred = list(np.repeat('NA',len(X))
+                this_pred = list(np.repeat('NA',len(X)))
                 for a,item in enumerate(indices_test):
                     this_pred[item] = this_yhat[a]
                 self.test_yhat.append(this_pred)
@@ -664,7 +664,7 @@ class feature_impoReg_MLP():
             self.scores.append(s)
             self.accuracys.append(acc)
             if self.get_prediction_consistency ==True:
-                this_pred = list(np.repeat('NA',len(X))
+                this_pred = list(np.repeat('NA',len(X)))
                 for a,item in enumerate(indices_test):
                     this_pred[item] = this_yhat[0][a]
                                                                   
@@ -892,7 +892,7 @@ class feature_impoClass_MLP():
             if self.get_prediction_consistency ==True:
                 this_yhat = model.predict(x_test, batch_size=10)
                 this_yhat = [np.argmax(a) for a in this_yhat]
-                this_pred = list(np.repeat('NA',len(X))
+                this_pred = list(np.repeat('NA',len(X)))
                 for a,item in enumerate(indices_test):
                     this_pred[item] = this_yhat[a]
                 self.test_yhat.append(this_pred)
