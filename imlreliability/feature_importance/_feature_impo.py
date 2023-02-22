@@ -83,16 +83,18 @@ def _pred_consistency_class(test_yhat,
         entropy['data']=data_name
         entropy['model']=estimator_name
         entropy['Purity'] = 1-(v-min(v))/max(v)-min(v)
+        entropy = entropy.groupby(['data','model']).mean().reset_index()
         return entropy
 def _pred_consistency_reg(test_yhat, 
                             data_name,estimator_name):
     
         v= np.apply_along_axis(_get_std_reg, 0, test_yhat)
-        entropy=pd.DataFrame(v)
+        entropy=pd.DataFrame(v.mean())
         entropy.columns=['sd']
         entropy['data']=data_name
         entropy['model']=estimator_name
         entropy['Purity']= np.exp(-v)
+        entropy = entropy.groupby(['data','model']).mean().reset_index()
         return entropy        
     
 def _get_entropy_class(x):
@@ -246,8 +248,8 @@ class feature_impoReg():
                 print('use feature_importances_ as feature importance ')
                 s = self.fitted.feature_importances_
         else:
-        #### use user-defined importance function
             impo_pack = self.importance_func.__module__.split('.')
+        #### importance function from shap functions
 
             if np.isin('shap',impo_pack):
                 if np.isin('_permutation',impo_pack):
@@ -277,6 +279,7 @@ class feature_impoReg():
 
             elif np.isin('_permutation_importance',impo_pack):
                 s = self.importance_func(self.fitted,x_train, y_train).importances_mean
+        #### use user-defined importance function
         
             else:
                 s = self.importance_func(self.fitted,x_train, y_train)
@@ -639,7 +642,7 @@ class feature_impoReg_MLP():
         self.scores= []
         self.accuracys = []
         self.test_yhat=[]
-        
+        (X,Y) = self.data
         for i in range(self.n_repeat):
             self.i=i
             if self.verbose==True:
@@ -815,11 +818,13 @@ class feature_impoClass_MLP():
                 s=perm.feature_importances_
                 print(s)
             else:
+                ###### Loac MLP model
                 model = load_model("mlp_"+str(self.i)+".h5")
                 if np.isin('shap',impo_pack):
                     background = x_train[np.random.choice(x_train.shape[0], 100, replace=False)]
                     s = self.importance_func(model, background).shap_values(x_test)
-                else: ##user defined function 
+                else: 
+                    ##user defined function 
                     s = self.importance_func(model,x_train, y_train)
   
         else: ## if input is string 
@@ -837,28 +842,34 @@ class feature_impoClass_MLP():
 
                 s=attributions.mean(0)
             else:
-#                 try:
-                impo_pack = (eval(self.importance_func.split('.')[0] + "()")).__module__.split('.')
-                if np.isin('deeplift',impo_pack):
-                    print('DeepLift')
-                    dl_model = kc.convert_model_from_saved_files(
-                                                h5_file=self.saved_model_file,
-                                                nonlinear_mxts_mode=eval(self.importance_func))
+                #### input string of functions from deeplift package ['NonlinearMxtsMode.RevealCancel',
+                ###                                            ]
+                try: 
+                    ########
+                    ### check if it's a function from deeplift package 
+                    #####
+                    impo_pack = (eval(self.importance_func.split('.')[0] + "()")).__module__.split('.')
+                    if np.isin('deeplift',impo_pack):
+                        print('DeepLift')
+                        dl_model = kc.convert_model_from_saved_files(
+                                                    h5_file=self.saved_model_file,
+                                                    nonlinear_mxts_mode=eval(self.importance_func))
 
-                    dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
-                                                                target_layer_idx=self.target_layer)
-                    method_name, score_func=self.importance_func, dl_func
-                    print("Computing scores for:",method_name)
-                    method_to_task_to_scores = {}
-                    scor = np.array(score_func(
-                                    task_idx=0,
-                                    input_data_list=[x_test],
-                                    input_references_list=[np.zeros_like(x_test)],
-                                    batch_size=100,
-                                    progress_update=None))
-                    s=scor.mean(0)
-#                 except:
-#                     print('Error')
+                        dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
+                                                                    target_layer_idx=self.target_layer)
+                        method_name, score_func=self.importance_func, dl_func
+                        print("Computing scores for:",method_name)
+                        method_to_task_to_scores = {}
+                        scor = np.array(score_func(
+                                        task_idx=0,
+                                        input_data_list=[x_test],
+                                        input_references_list=[np.zeros_like(x_test)],
+                                        batch_size=100,
+                                        progress_update=None))
+                        s=scor.mean(0)
+
+                except:
+                    print('Invalid feature importance function')
         return clean_score(s)
 
 
@@ -866,7 +877,8 @@ class feature_impoClass_MLP():
         self.scores= []
         self.accuracys = []
         self.test_yhat=[]
-        
+        (X,Y) = self.data
+
         for i in range(self.n_repeat):
             self.i=i
             if self.verbose==True:

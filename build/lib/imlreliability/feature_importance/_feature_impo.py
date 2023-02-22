@@ -283,8 +283,8 @@ class feature_impoReg():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name,range(1,self.K_max,1))
         
 
         if self.get_prediction_consistency ==True:
@@ -465,9 +465,9 @@ class feature_impoClass():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None):
         
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
         if self.get_prediction_consistency ==True:
             self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
@@ -682,9 +682,9 @@ class feature_impoReg_MLP():
                 self.test_yhat.append(this_pred)
                     
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None):
        
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
         if self.get_prediction_consistency ==True:
             self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
@@ -912,8 +912,8 @@ class feature_impoClass_MLP():
                 self.test_yhat.append(this_pred)
                 
                 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
-        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
+    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+        self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
         if self.get_prediction_consistency ==True:
             self.prediction_consistency = _pred_consistency_class(self.test_yhat, 
