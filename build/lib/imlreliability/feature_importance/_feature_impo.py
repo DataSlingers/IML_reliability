@@ -160,6 +160,7 @@ class feature_impoReg():
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
+                 K_max = 30,
                  n_repeat=50,
                  split_proportion=0.7,
                  get_prediction_consistency=True,
@@ -171,10 +172,13 @@ class feature_impoReg():
         self.split_proportion=split_proportion
         self.verbose=verbose
         self.norm=norm
+        
+        
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
         (self.X,self.Y) = self.data
+        self.K_max=min(K_max+1,len(self.X[0])+1)
         self.rand_index=rand_index
         self.get_prediction_consistency=get_prediction_consistency
         self.M=len(self.X[0])
@@ -279,7 +283,7 @@ class feature_impoReg():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
         
 
@@ -337,6 +341,7 @@ class feature_impoClass():
                  sigma=None,
                  importance_func=None,
                  evaluate_fun=accuracy_score,
+                K_max = 30,
                  n_repeat=100,
                  split_proportion=0.7,
                 get_prediction_consistency=True,
@@ -350,6 +355,9 @@ class feature_impoClass():
         self.n_repeat=n_repeat
         self.norm=norm
         self.data=data
+        (self.X,self.Y) = self.data
+        self.K_max=min(K_max+1,len(self.X[0])+1)
+        
         self.estimator=estimator
         self.importance_func=importance_func
         self.rand_index=rand_index
@@ -457,7 +465,7 @@ class feature_impoClass():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
         
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
 
@@ -513,6 +521,7 @@ class feature_impoReg_MLP():
                  estimator=None,
                  sigma=None,
                  evaluate_fun=accuracy_score,
+                K_max = 30,
                  n_repeat=50,
                  split_proportion=0.7,
                 get_prediction_consistency=True,
@@ -528,6 +537,8 @@ class feature_impoReg_MLP():
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
+        (self.X,self.Y) = self.data
+        self.K_max=min(K_max+1,len(self.X[0])+1)
         self.get_prediction_consistency=get_prediction_consistency
         self.rand_index=rand_index
         (self.X,self.Y) = self.data
@@ -671,7 +682,7 @@ class feature_impoReg_MLP():
                 self.test_yhat.append(this_pred)
                     
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
        
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
 
@@ -730,6 +741,7 @@ class feature_impoClass_MLP():
                  sigma=None,
                  evaluate_fun=accuracy_score,
                  noise_type='split',
+                K_max = 30,
                  n_repeat=50,
                  split_proportion=0.7,
                 get_prediction_consistency=True,
@@ -745,8 +757,10 @@ class feature_impoClass_MLP():
         self.n_repeat=n_repeat
         self.importance_func=importance_func        
         self.data=data
-        self.get_prediction_consistency=get_prediction_consistency    
         (self.X,self.Y) = self.data
+        self.K_max=min(K_max+1,len(self.X[0])+1)
+        
+        self.get_prediction_consistency=get_prediction_consistency    
         self.M=len(self.X[0])
         self.num_class=len(set(self.Y))
         self.rand_index=rand_index
@@ -898,7 +912,7 @@ class feature_impoClass_MLP():
                 self.test_yhat.append(this_pred)
                 
                 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
+    def consistency(self,data_name,estimator_name,impotance_func_name=None, Ks=range(1,self.K_max,1)):
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, Ks)
 
         if self.get_prediction_consistency ==True:
