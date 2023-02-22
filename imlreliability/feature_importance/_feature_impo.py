@@ -902,7 +902,7 @@ class feature_impoClass_MLP():
             yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
             yy_train = np.array(yy_train)
             
-            if np.isin('permutation_importance',impo_pack):
+            if np.isin('permutation_importance',self.importance_func.__module__.split('.')):
                 s = self._impo_score(x_train,y_train, x_test)
             else:
                 try:
