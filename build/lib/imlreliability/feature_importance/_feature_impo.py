@@ -17,7 +17,9 @@ from tensorflow.python.keras import backend as K
 from tensorflow import keras
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
 from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
-
+import deeplift
+from deeplift.layers import NonlinearMxtsMode
+from deeplift.conversion import kerasapi_conversion as kc
 from .rbo import RankingSimilarity
 from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_similarity)
 
@@ -622,7 +624,7 @@ class feature_impoReg_MLP():
                     print('DeepLift')
                     dl_model = kc.convert_model_from_saved_files(
                                                 h5_file=self.saved_model_file,
-                                                nonlinear_mxts_mode=eval(self.importance_func))
+                                                nonlinear_mxts_mode=(self.importance_func))
 
                     dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
                                                                 target_layer_idx=self.target_layer)

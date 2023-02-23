@@ -2,9 +2,10 @@ from sklearn.metrics.cluster import adjusted_rand_score
 from sklearn.metrics import adjusted_mutual_info_score
 from sklearn.metrics import v_measure_score
 from sklearn.metrics import fowlkes_mallows_score
-from sklearn import preprocessing
-from .util_clustering import add_noise
-
+from sklearn.preprocessing import normalize,scale
+from .util_clustering import add_noise,internal_resample
+import pandas as pd
+import numpy as np
 
 class clustering():
     """ 
@@ -43,17 +44,27 @@ class clustering():
     """
     def __init__(self,data,estimator,K,
                  label=None,
+                 perturbation = 'noise',
                  sigma=1,
                  noise_type='normal',  
                  n_repeat=50,
-                    rand_index=None,
+                 split_proportion=0.7,
                  user_metric= None,
                  user_metric_name='user_metric',
-                 normalize=True,
+                  rand_index=None,
+                norm=True,
+                 stratify=True,
                     verbose=True):
- 
+        
+#          if perturbation not in ['noise','split']:
+             
+#                 raise ValueError("results: perturbation must be one of %r." % ['noise','split'])
+            
+        self.perturbation=perturbation
+        
         self.sigma=sigma
         self.noise_type=noise_type
+        self.split_proportion=split_proportion
         self.verbose=verbose
         self.n_repeat=n_repeat
         self.K = K
@@ -62,21 +73,27 @@ class clustering():
         self.estimator=estimator
         self.user_metric=user_metric
         self.user_metric_name=user_metric_name
- 
-        if normalize:
-            self.X = preprocessing.normalize(self.X)
+        self.rand_index=rand_index
             
-            
+        if norm == True:
+             self.X = normalize(scale(self.X))
     def fit(self, *args,**kwargs):
         self.predicted_label = []
+        self.split_train_ind= []
         for i in range(self.n_repeat):
             if self.verbose==True:
                 print('Iter: ',i)
            
-         
-            x_new = add_noise(self.X, noise_type=self.noise_type,
+            if self.perturbation =='noise':
+                x_new = add_noise(self.X,noise_type=self.noise_type,
                            sigma=self.sigma,
-                           random_index=i*4)
+                           random_index=i*self.rand_index)
+            else:
+                x_new, x_test, y_train, y_test,indices_train,indices_test  = internal_resample(self.X, self.label, 
+                                           proportion=self.split_proportion,
+                           random_index=i*self.rand_index)                
+                self.split_train_ind.append(indices_train)
+            
             
             fitted = self.estimator.fit(x_new)
             self.predicted_label.append(fitted.labels_.astype(str))
@@ -86,72 +103,83 @@ class clustering():
 
 
     def consistency(self,data_name,method_name):
-       
+        ####### pairwise consistency 
+        
+        
+        self.consistency_values={}
+        criterias = [('ARI',adjusted_rand_score),
+                    ('Mutual Information',adjusted_mutual_info_score),
+                    ('V Measure Score',v_measure_score),
+                    ('Fowlkes Mallows Score',fowlkes_mallows_score)]
+        if self.user_metric is not None:
+            criterias=criterias+[(self.user_metric_name,self.user_metric)]
+            
+            
+        for cri in criterias:
+             self.consistency_values[cri[0]] = pd.DataFrame(columns = ['data','method','perturbation','noise','sigma','criteria','Consistency']) ## initiate consistency pd
+        
+        for a in range(self.n_repeat):
+            for b in range(a+1,self.n_repeat):
+                ## label of each repeats 
+                print(self.perturbation)
+                if self.perturbation!='noise':
+                    subset=(list(set(self.split_train_ind[a]) & set(self.split_train_ind[b])))
+                    label1= [self.predicted_label[a][w] for w in [self.split_train_ind[a].index(v) for v in subset]]
+                    label2= [self.predicted_label[b][w] for w in [self.split_train_ind[b].index(v) for v in subset]]
+                else:
+                    subset = range(len(self.X))
+                    label1 = self.predicted_label[a]
+                    label2 = self.predicted_label[b]
+   
+                for cri,cri_func in criterias:
+                    self.consistency_values[cri].loc[len(self.consistency_values[cri])]=[data_name,
+                                                                                         method_name,
+                                                                                         self.perturbation,
+                                                                                         self.noise_type,
+                                                                                         self.sigma,
+                                                                                         cri,
+                                                                                         round(cri_func(label1,label2),3)] 
+                                     
+                             
+
+
+                    
+        self.consistency_values2 = pd.concat(self.consistency_values.values(), ignore_index=True)
+        self.consistency_mean = self.consistency_values2.groupby(['data','method','perturbation','noise','sigma','criteria'],as_index=False).mean()
+        
          ### Accuracy 
         if self.label is not None:        
             self.accuracy_values={}
-            for cri,cri_func in [('ARI',adjusted_rand_score),
-                ('Mutual Information',adjusted_mutual_info_score),
-                ('V Measure Score',v_measure_score),
-                ('Fowlkes Mallows Score',fowlkes_mallows_score)]:
+            
+            
+            if self.perturbation=='noise':
+                label_true = [self.label for i in range(self.n_repeat)]
+            else:
+                label_true = [[self.label[a] for a in self.split_train_ind[i]] for i in range(self.n_repeat)]
+
+           
+            for cri,cri_func in criterias:
                 self.accuracy_values[cri] = pd.DataFrame(
                                     {'data':data_name,
                                       'method':method_name,
+                                     'perturbation':self.perturbation,
                                       'noise':self.noise_type,
                                       'sigma':self.sigma,
                                       'criteria':cri,
-                                    'Accuracy':[cri_func(self.label, y) for y in self.predicted_label]                                       
+                                    'Accuracy':[round(cri_func(label_true[y], self.predicted_label[y]),3) for y in range(self.n_repeat)]                                       
                                      }
                              )            
-            
-            
-            if self.user_metric is not None:
-                self.accuracy_values[self.user_metric_name] = pd.DataFrame(
-                                        {'data':data_name,
-                                          'method':method_name,
-                                          'noise':self.noise_type,
-                                          'sigma':self.sigma,
-                                        'criteria':self.user_metric_name,
-                                          'Accuracy':[self.user_metric(self.label, y) for y in self.predicted_label]                          
-                                         }
-                                 )
+  
             self.accuracy_values = pd.concat(self.accuracy_values.values(), ignore_index=True)
   
-            self.accuracy_mean = self.accuracy_values.groupby(['data','method','noise','sigma','criteria'],as_index=False).mean()
-    
-          ####### pairwise consistency 
-        self.consistency_values={}
-        for cri,cri_func in [('ARI',adjusted_rand_score),
-            ('Mutual Information',adjusted_mutual_info_score),
-            ('V Measure Score',v_measure_score),
-            ('Fowlkes Mallows Score',fowlkes_mallows_score)]:
-            self.consistency_values[cri] = pd.DataFrame(
-                                {'data':data_name,
-                                  'method':method_name,
-                                  'noise':self.noise_type,
-                                  'sigma':self.sigma,
-                                  'criteria':cri,
-                                  'Consistency':[cri_func(self.predicted_label[i],self.predicted_label[j]) for i in range(self.n_repeat) for j in range(i+1,self.n_repeat)]                                        
-                                 }
-                         )
+            self.accuracy_mean = self.accuracy_values.groupby(['data','method','perturbation','noise','sigma','criteria'],as_index=False).mean()
 
-        if self.user_metric is not None:
-            self.consistency[self.user_metric_name] = d.DataFrame(
-                                        {'data':data_name,
-                                          'method':method_name,
-                                          'noise':self.noise_type,
-                                          'sigma':self.sigma,
-                                        'criteria':self.user_metric_name,
-                                          'Consistency':[self.user_metric(self.predicted_label[i],self.predicted_label[j]) for i in range(self.n_repeat) for j in range(i+1,self.n_repeat)]                                        
-                    }
-                                 )
-            
-        self.consistency_values = pd.concat(self.consistency_values.values(), ignore_index=True)
-        self.consistency_mean = self.consistency_values.groupby(['data','method','noise','sigma','criteria'],as_index=False).mean()
-        self.results = pd.merge(self.accuracy_mean,self.consistency_mean,
-                                how='left',on = ['data','method','noise','sigma','criteria'])
+            self.results = pd.merge(self.accuracy_mean,self.consistency_mean,
+                                how='left',on = ['data','method','perturbation','noise','sigma','criteria'])
 
-        self.results['Accuracy'] = [round(i,3) for i in self.results['Accuracy']]
-        self.results['Consistency'] = [round(i,3) for i in self.results['Consistency']]
-
+        else: 
+            #### if no label input
+            self.results  = self.consistency_mean.copy()
+            self.results['Accuracy']= np.nan
+        
         
