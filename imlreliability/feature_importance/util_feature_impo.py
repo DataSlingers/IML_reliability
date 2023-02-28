@@ -2,18 +2,18 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 def internal_resample(x,y,random_index=None, proportion=0.7,stratify=False):
-    """Data spliting perturbation. 
+    """Data splitting perturbation. 
     
     Parameters
     -------------
-      x: arrary of shape (n_sampple, n_feature)
+      x: array of shape (n_sampple, n_feature)
           predictors 
       
       y: array of shape (n_sampple,)
           response 
       
       proportion: float
-          training data proportion in data spliting 
+          training data proportion in data splitting 
       
       rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -22,18 +22,18 @@ def internal_resample(x,y,random_index=None, proportion=0.7,stratify=False):
     
     Returns 
     -------------
-    x_train: arrary of shape (n_sampple*proportion, n_feature)
-        predictors in training set 
+    x_train: array of shape (n_sampple*proportion, n_feature)
+        predictors in the training set 
         
     
-    x_test: arrary of shape (n_sampple*(1-proportion),)
-        predictors in test set 
+    x_test: array of shape (n_sampple*(1-proportion),)
+        predictors in the test set 
         
         
-    y_train: arrary of shape (n_sampple*(1-proportion), n_feature)
-        response in training set
-    y_test:: arrary of shape (n_sampple*(1-proportion),)
-        response in test set
+    y_train: array of shape (n_sampple*(1-proportion), n_feature)
+        response in the training set
+    y_test:: array of shape (n_sampple*(1-proportion),)
+        response in the test set
     
     indices_train: array of shape (n_sampple*proportion,)
         indices of training samples
@@ -53,21 +53,21 @@ def add_noise(x, noise_type,sigma,random_index=None):
     
     Parameters
     -------------
-      x: arrary of shape (n_sampple, n_feature)
+      x: array of shape (n_sampple, n_feature)
           Predictors 
       
       noise_type: str
-          Distirbution type of noise, chosen from ['normal','laplace']
+          Distribution type of noise, chosen from ['normal', 'laplace']
           
       sigma: float
-          Conrtols variance of noise distribution 
+          Controls variance of noise distribution 
 
       random_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
     
     Returns 
     -------------
-    newx: arrary of shape (n_sampple, n_feature)
+    newx: array of shape (n_sampple, n_feature)
         perturbed data after noise addition 
 
     """

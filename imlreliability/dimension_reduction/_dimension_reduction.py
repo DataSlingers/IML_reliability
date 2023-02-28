@@ -13,13 +13,13 @@ class dimension_reduction():
     """ 
     Parameters
     ----------
-    data: arrary of shape (N,M)
+    data: array of shape (N, M)
             
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
     
     K: int
-        Number of clusters. 
+        The number of clusters. 
     
     label: array of shape (N,1) or None. default = None.
         True cluster labels
@@ -30,22 +30,22 @@ class dimension_reduction():
             split: conduct data splitting. 
             
     noise_type: {'normal','laplace'}. need to specify if noise_type=='noise'
-        Distirbution type of noise. 
+        Distribution type of noise. 
 
     sigma: float. need to specify if noise_type=='noise'
-        Conrtols variance of noise distribution 
+        Controls variance of noise distribution 
     
     rank: int. default=2
-        Number of reducted dimensions.
+        The number of reduced dimensions.
         
     split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
-        Proportion of training set in data spliting.
+        The proportion of training set in data splitting.
 
     n_repeat: int. default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
 
     stratify: {True,False}
           Controls whether to conduct stratified sampling     
@@ -58,7 +58,7 @@ class dimension_reduction():
 
     Returns
     ----------
-    accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation,clustering, noise, sigma, rank, criteria,Accuracy]    
+    accuracy_values: pandas data frame of shape (n_repeat,7), columns = [data, method, perturbation, clustering, noise, sigma, rank, criteria, Accuracy]    
         IML model clustering accuracy of each repeat.
             data: name of data set
             method: IML methods. 
@@ -70,7 +70,7 @@ class dimension_reduction():
             criteria: consistency metrics. 
             Accuracy: clustering accuracy scores of each repeat.
     
-    results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation,clustering, noise, sigma, rank,  criteria, Consistency , Accuracy] 
+    results: pandas data frame of shape (n_repeat,8), columns = [data, method, perturbation, clustering, noise, sigma, rank,  criteria, Consistency, Accuracy] 
         IML model interpretation consistency and prediction accuracy 
             data: name of data set
             method: IML methods. 
@@ -84,7 +84,7 @@ class dimension_reduction():
             Accuracy: average clustering accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
    
 
     
@@ -163,30 +163,30 @@ class dimension_reduction():
         Parameters
         ----------
         data_name: str. 
-            Name of data set. 
+            Name of the data set. 
 
         method_name: str. 
             Name of dimension reduction method. 
 
         cluster_func: callable. 
-            clustering object applied to reduced dimension
+            clustering object applied to the reduced dimension
 
         cluster_func_name: str.  
             Name of clustering function. 
 
         user_metric: callable. default = None.
-            User defined evaluation metric for consistency. 
+            The user-defined evaluation metric for consistency. 
 
 
         user_metric_name: str. default = 'user_metric'.
-            Name of user defined metric. 
+            Name of user-defined metric. 
 
 
         Returns
         ----------
 
 
-        accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation,clustering, noise, sigma, rank, criteria,Accuracy]    
+        accuracy_values: pandas data frame of shape (n_repeat,7), columns = [data,method, perturbation,clustering, noise, sigma, rank, criteria,Accuracy]    
             IML model clustering accuracy of each repeat.
                 data: name of data set
                 method: IML methods. 
@@ -212,7 +212,7 @@ class dimension_reduction():
                 Accuracy: average clustering accuracy scores. 
 
 
-            Can be saved and upload to dashboard. 
+            Can be saved and uploaded to the dashboard. 
 
         """        
         
@@ -307,7 +307,7 @@ class dimension_reduction():
         Parameters
         ----------
         data_name: str. 
-            Name of data set. 
+            Name of the data set. 
 
         method_name: str. 
             Name of dimension reduction method. 
@@ -322,7 +322,7 @@ class dimension_reduction():
 
         consistency_knn: pandas dataframe of shape (n_repeat,9), columns = [data,method,noise, sigma, rank, K, criteria,Consistency]    
 
-            Jaccard consistency scores in reducted dimensions under each K of each repeat.
+            Jaccard consistency scores in reduced dimensions under each K of each repeat.
                 data: name of data set
                 method: IML methods. 
                 noise: type of noise added.
@@ -344,7 +344,7 @@ class dimension_reduction():
                 Consistency: average AUC consistency scores. 
 
 
-            Can be saved and upload to dashboard. 
+            Can be saved and uploaded to the dashboard. 
 
         """        
         

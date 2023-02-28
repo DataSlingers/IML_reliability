@@ -11,13 +11,13 @@ class clustering():
     """ 
     Parameters
     ----------
-    data: arrary of shape (N,M)
+    data: array of shape (N, M)
             
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
     
     K: int
-        Number of clusters. 
+        The number of clusters. 
     
     label: array of shape (N,1) or None. default = None.
         True cluster labels
@@ -28,26 +28,26 @@ class clustering():
             split: conduct data splitting. 
             
     noise_type: {'normal','laplace'}. need to specify if noise_type=='noise'
-        Distirbution type of noise. 
+        Distribution type of noise. 
 
     sigma: float. need to specify if noise_type=='noise'
-        Conrtols variance of noise distribution 
+        Controls variance of noise distribution 
     
     n_repeat: int, default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
-        Proportion of training set in data spliting.
+        The proportion of training set in data splitting.
         
     user_metric: callable. default = None.
-        User defined evaluation metric for consistency. 
+        User-defined evaluation metric for consistency. 
         
         
     user_metric_name: str. default = 'user_metric'.
-        Name of user defined metric. 
+        Name of user-defined metric. 
         
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
 
     stratify: {True,False}
           Controls whether to conduct stratified sampling     
@@ -62,7 +62,7 @@ class clustering():
     ----------
     
 
-    accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation, noise, sigma, criteria,Accuracy]    
+    accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data, method, perturbation, noise, sigma, criteria, Accuracy]    
         IML model clustering accuracy of each repeat.
             data: name of data set
             method: IML methods. 
@@ -72,7 +72,7 @@ class clustering():
             criteria: consistency metrics. 
             Accuracy: clustering accuracy scores of each repeat.
     
-    results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation, noise, sigma, criteria, Consistency  Accuracy] 
+    results: pandas data frame of shape (n_repeat,8), columns = [data,method, perturbation, noise, sigma, criteria, Consistency  Accuracy] 
         IML model interpretation consistency and clustering accuracy 
             data: name of data set
             method: IML methods. 
@@ -84,7 +84,7 @@ class clustering():
             Accuracy: average clustering accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
     
     """
     

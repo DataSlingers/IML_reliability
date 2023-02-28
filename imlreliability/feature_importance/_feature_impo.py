@@ -123,43 +123,43 @@ class feature_impoReg():
     """ 
     Parameters
     ----------
-    data: (X,Y)
-        X: arrary of shape (N,M)
-        Y: arrary of shape (N,)
+    data: (X, Y)
+        X: array of shape (N, M)
+        Y: array of shape (N,)
         
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
-        Either estimator needs to provide a ``score`` function,
+        Either estimator needs to provide a ``score`` function
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    importance_func: str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
-        - a single string (see :ref:`importance_parameter`);
-        - a callable (see :ref:`importance`) that returns a list of values.
+        - a single string (see:ref:`importance_parameter`);
+        - a callable (see:ref:`importance`) that returns a list of values.
         
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
         Function to evaluate prediction performance.
         
     K_max: int 
-        Number of top features of interest.
+        The number of top features of interest.
 
     n_repeat: int, default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     split_proportion: float in (0,1). 
-        Proportion of training set in data spliting. 
+        The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Constrols whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency. 
     
     sigma: float, 
-        Conrtols level of noise. need to specify if noise_type!='split'. 
+        Controls level of noise. need to specify if noise_type!='split'. 
     
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -179,26 +179,26 @@ class feature_impoReg():
     accuracy: pandas dataframe of shape (n_repeat,3), columns = [data,model,Accuracy]    
         IML model prediction accuracy of each repeat.
             data: name of data set
-            model: ML prediction model.  
+            model:  the ML prediction model.  
             Accuracy: prediction accuracy scores of each repeat.
     
-    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+    consistency: pandas data frame of shape (n_repeat,6), columns = [data, method, criteria,K, Consistency,Accuracy] 
         IML model interpretation consistency and prediction accuracy 
-            data: name of data set
-            method: IML methods. 
+            data: name of the data set
+            method: the IML methods. 
             criteria: consistency metrics. 
             K: number of top features.
             Consistency: average pairwise consistency scores. 
             Accuracy: average prediction accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
     
     prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
         IML model prediction consistency score
         
             data: name of data set
-            model: ML prediction model.  
+            model: an ML prediction model.  
             Entropy: prediction entropy, higher entropy indicates lower consistency.
             Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
     """
@@ -338,40 +338,40 @@ class feature_impoClass():
     """ 
     Parameters
     ----------
-    data: (X,Y)
-        X: arrary of shape (N,M)
-        Y: arrary of shape (N,)
+    data: (X, Y)
+        X: array of shape (N,M)
+        Y: array of shape (N,)
         
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
-        Either estimator needs to provide a ``score`` function,
+        Either estimator needs to provide a ``score`` function
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    importance_func: str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
-        - a single string (see :ref:`importance_parameter`);
-        - a callable (see :ref:`importance`) that returns a list of values.
+        - a single string (see:ref:`importance_parameter`);
+        - a callable (see:ref:`importance`) that returns a list of values.
         
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
         Function to evaluate prediction performance.
         
     K_max: int 
-        Number of top features of interest.
+        The number of top features of interest.
 
     n_repeat: int, default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     split_proportion: float in (0,1). 
-        Proportion of training set in data spliting. 
+        The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Constrols whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency. 
     
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -394,25 +394,25 @@ class feature_impoClass():
             model: ML prediction model.  
             Accuracy: prediction accuracy scores of each repeat.
     
-    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+    consistency: pandas data frame of shape (n_repeat,6), columns = [data, method, criteria, K, Consistency, Accuracy] 
         IML model interpretation consistency and prediction accuracy 
-            data: name of data set
+            data: name of the data set
             method: IML methods. 
             criteria: consistency metrics. 
-            K: number of top features.
+            K: the number of top features.
             Consistency: average pairwise consistency scores. 
             Accuracy: average prediction accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
     
-    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy, Purity] 
         IML model prediction consistency score
         
             data: name of data set
-            model: ML prediction model.  
+            model: the ML prediction model.  
             Entropy: prediction entropy, higher entropy indicates lower consistency.
-            Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
+            Purity: consistency score converted from entropy, ranges in [0,1], and higher purity indicates the higher consistency.
     """
 
     def __init__(self,data,estimator,
@@ -554,41 +554,41 @@ class feature_impoReg_MLP():
     """ 
     Parameters
     ----------
-    data: (X,Y)
-        X: arrary of shape (N,M)
-        Y: arrary of shape (N,)
+    data: (X, Y)
+        X: array of shape (N, M)
+        Y: array of shape (N,)
         
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
-        Either estimator needs to provide a ``score`` function,
+        Either estimator needs to provide a ``score`` function
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    importance_func: str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
-        - a single string (see :ref:`importance_parameter`);
-        - a callable (see :ref:`importance`) that returns a list of values.
+        - a single string (see:ref:`importance_parameter`);
+        - a callable (see:ref:`importance`) that returns a list of values.
         
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
         Function to evaluate prediction performance.
         
     K_max: int 
-        Number of top features of interest.
+        The number of top features of interest.
 
     n_repeat: int, default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     split_proportion: float in (0,1). 
-        Proportion of training set in data spliting. 
+        The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Constrols whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency. 
     
 
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -611,9 +611,9 @@ class feature_impoReg_MLP():
             model: ML prediction model.  
             Accuracy: prediction accuracy scores of each repeat.
     
-    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+    consistency: pandas data frame of shape (n_repeat,6), columns = [data, method, criteria,K, Consistency,Accuracy] 
         IML model interpretation consistency and prediction accuracy 
-            data: name of data set
+            data: name of the data set
             method: IML methods. 
             criteria: consistency metrics. 
             K: number of top features.
@@ -621,7 +621,7 @@ class feature_impoReg_MLP():
             Accuracy: average prediction accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
     
     prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
         IML model prediction consistency score
@@ -810,41 +810,41 @@ class feature_impoClass_MLP():
     """ 
     Parameters
     ----------
-    data: (X,Y)
-        X: arrary of shape (N,M)
-        Y: arrary of shape (N,)
+    data: (X, Y)
+        X: array of shape (N, M)
+        Y: array of shape (N,)
         
-    estimator : estimator object
+    estimator: estimator object
         This is assumed to implement the scikit-learn estimator interface.
-        Either estimator needs to provide a ``score`` function,
+        Either estimator needs to provide a ``score`` function
         or ``scoring`` must be passed.
         
         
-    importance_func : str, callable, list, tuple or dict, default=None
+    importance_func: str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
-        - a single string (see :ref:`importance_parameter`);
-        - a callable (see :ref:`importance`) that returns a list of values.
+        - a single string (see:ref:`importance_parameter`);
+        - a callable (see:ref:`importance`) that returns a list of values.
         
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
         Function to evaluate prediction performance.
         
     K_max: int 
-        Number of top features of interest.
+        The number of top features of interest.
 
     n_repeat: int, default=100
-        Number of repeats to measure consistency (run in parallel).
+        The number of repeats to measure consistency (run in parallel).
 
     split_proportion: float in (0,1). 
-        Proportion of training set in data spliting. 
+        The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Constrols whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency. 
     
 
     norm: {True,False}
-        Constrols whether to conduct data normalization. 
+        Controls whether to conduct data normalization. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -867,9 +867,9 @@ class feature_impoClass_MLP():
             model: ML prediction model.  
             Accuracy: prediction accuracy scores of each repeat.
     
-    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency, Accuracy] 
+    consistency: pandas data frame of shape (n_repeat,6), columns = [data, method, criteria,K, Consistency, Accuracy] 
         IML model interpretation consistency and prediction accuracy 
-            data: name of data set
+            data: name of the data set
             method: IML methods. 
             criteria: consistency metrics. 
             K: number of top features.
@@ -877,7 +877,7 @@ class feature_impoClass_MLP():
             Accuracy: average prediction accuracy scores. 
  
  
-        Can be saved and upload to dashboard. 
+        Can be saved and uploaded to the dashboard. 
     
     prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy, Purity] 
         IML model prediction consistency score
