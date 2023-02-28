@@ -123,10 +123,9 @@ class feature_impoReg():
     """ 
     Parameters
     ----------
-    data: 
-        (X,Y)
-        X: N*M numpy array
-        Y: N*1 numpy array 
+    data: (X,Y)
+        X: arrary of shape (N,M)
+        Y: arrary of shape (N,)
         
     estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
@@ -142,27 +141,66 @@ class feature_impoReg():
         - a callable (see :ref:`importance`) that returns a list of values.
         
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
-    
-    split_proportion: float in (0,1). need to specify if noise_type=='split'
-    
-    sigma: float, level of noise. need to specify if noise_type!='split'
-    
-    norm: binary. conduct data normalization 
-    
+        Function to evaluate prediction performance.
+        
+    K_max: int 
+        Number of top features of interest.
+
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
+
+    split_proportion: float in (0,1). 
+        Proportion of training set in data spliting. 
     
+    get_prediction_consistency: {True,False}
+        Constrols whether to calculate prediction consistency. 
     
+    sigma: float, 
+        Conrtols level of noise. need to specify if noise_type!='split'. 
     
-    Attributes
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
+    
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+    
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
     
-    prediction_score: mse or accuracy.. 
-        a list with length = n_repeat
+    prediction_score: array of shape (n_repeat, )
+        Prediction error
+            
+    importance_score: array of shape (n_repeat, M)
+        Importance scores of each feature in each repeat 
     
-    importance_score: 
-        a n_repeat*M matrix
+    accuracy: pandas dataframe of shape (n_repeat,3), columns = [data,model,Accuracy]    
+        IML model prediction accuracy of each repeat.
+            data: name of data set
+            model: ML prediction model.  
+            Accuracy: prediction accuracy scores of each repeat.
     
+    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+        IML model interpretation consistency and prediction accuracy 
+            data: name of data set
+            method: IML methods. 
+            criteria: consistency metrics. 
+            K: number of top features.
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average prediction accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
+    
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
+        IML model prediction consistency score
+        
+            data: name of data set
+            model: ML prediction model.  
+            Entropy: prediction entropy, higher entropy indicates lower consistency.
+            Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
     """
     def __init__(self,data,
                  estimator,
@@ -300,10 +338,9 @@ class feature_impoClass():
     """ 
     Parameters
     ----------
-    data: 
-        (X,Y)
-        X: N*M numpy array
-        Y: N*1 numpy array 
+    data: (X,Y)
+        X: arrary of shape (N,M)
+        Y: arrary of shape (N,)
         
     estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
@@ -318,29 +355,66 @@ class feature_impoClass():
         - a single string (see :ref:`importance_parameter`);
         - a callable (see :ref:`importance`) that returns a list of values.
         
-            
-    split_proportion: float in (0,1). need to specify if randomn=='split'
-    
-    sigma: float, level of noise. need to specify if randomn!='split'
-    
-       norm: binary. conduct data normalization 
-  
+    evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
+        Function to evaluate prediction performance.
+        
+    K_max: int 
+        Number of top features of interest.
+
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
+
+    split_proportion: float in (0,1). 
+        Proportion of training set in data spliting. 
     
+    get_prediction_consistency: {True,False}
+        Constrols whether to calculate prediction consistency. 
     
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
     
-    Attributes
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+    
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
     
-    prediction_score: mse or accuracy.. 
-        a list with length = n_repeat
+    prediction_score: array of shape (n_repeat, )
+        Prediction error
+            
+    importance_score: array of shape (n_repeat, M)
+        Importance scores of each feature in each repeat 
     
-    importance_score: 
-        a n_repeat*M matrix
-
+    accuracy: pandas dataframe of shape (n_repeat,3), columns = [data,model,Accuracy]    
+        IML model prediction accuracy of each repeat.
+            data: name of data set
+            model: ML prediction model.  
+            Accuracy: prediction accuracy scores of each repeat.
     
+    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+        IML model interpretation consistency and prediction accuracy 
+            data: name of data set
+            method: IML methods. 
+            criteria: consistency metrics. 
+            K: number of top features.
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average prediction accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
+    
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
+        IML model prediction consistency score
+        
+            data: name of data set
+            model: ML prediction model.  
+            Entropy: prediction entropy, higher entropy indicates lower consistency.
+            Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
     """
+
     def __init__(self,data,estimator,
                  importance_func=None,
                  evaluate_fun=accuracy_score,
@@ -480,10 +554,9 @@ class feature_impoReg_MLP():
     """ 
     Parameters
     ----------
-    data: 
-        (X,Y)
-        X: N*M numpy array
-        Y: N*1 numpy array 
+    data: (X,Y)
+        X: arrary of shape (N,M)
+        Y: arrary of shape (N,)
         
     estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
@@ -491,46 +564,85 @@ class feature_impoReg_MLP():
         or ``scoring`` must be passed.
         
         
-    self.importance_func : str, callable, list, tuple or dict, default=None
+    importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
         - a single string (see :ref:`importance_parameter`);
         - a callable (see :ref:`importance`) that returns a list of values.
         
-            
-    split_proportion: float in (0,1). need to specify if noise_type=='split'
-    
-    sigma: float, level of noise. need to specify if noise_type!='split'
-    
-    
+    evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
+        Function to evaluate prediction performance.
+        
+    K_max: int 
+        Number of top features of interest.
+
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
+
+    split_proportion: float in (0,1). 
+        Proportion of training set in data spliting. 
     
+    get_prediction_consistency: {True,False}
+        Constrols whether to calculate prediction consistency. 
     
+
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
     
-    Attributes
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+    
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
     
-    prediction_score: mse or accuracy.. 
-        a list with length = n_repeat
+    prediction_score: array of shape (n_repeat, )
+        Prediction error
+            
+    importance_score: array of shape (n_repeat, M)
+        Importance scores of each feature in each repeat 
     
-    importance_score: 
-        a n_repeat*M matrix
-
+    accuracy: pandas dataframe of shape (n_repeat,3), columns = [data,model,Accuracy]    
+        IML model prediction accuracy of each repeat.
+            data: name of data set
+            model: ML prediction model.  
+            Accuracy: prediction accuracy scores of each repeat.
     
+    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency,Accuracy] 
+        IML model interpretation consistency and prediction accuracy 
+            data: name of data set
+            method: IML methods. 
+            criteria: consistency metrics. 
+            K: number of top features.
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average prediction accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
+    
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
+        IML model prediction consistency score
+        
+            data: name of data set
+            model: ML prediction model.  
+            Entropy: prediction entropy, higher entropy indicates lower consistency.
+            Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
     """
+    
+   
     def __init__(self,data,importance_func, 
                  estimator=None,
                  evaluate_fun=accuracy_score,
-                K_max = 30,
+                 K_max = 30,
                  n_repeat=50,
                  split_proportion=0.7,
-                get_prediction_consistency=True,
+                 get_prediction_consistency=True,
                  norm=True,
-                rand_index=None,
-                verbose=True):
-        print(estimator)
+                 rand_index=None,
+                 verbose=True):
 
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion
@@ -698,10 +810,9 @@ class feature_impoClass_MLP():
     """ 
     Parameters
     ----------
-    data: 
-        (X,Y)
-        X: N*M numpy array
-        Y: N*1 numpy array 
+    data: (X,Y)
+        X: arrary of shape (N,M)
+        Y: arrary of shape (N,)
         
     estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
@@ -709,47 +820,84 @@ class feature_impoClass_MLP():
         or ``scoring`` must be passed.
         
         
-    self.importance_func : str, callable, list, tuple or dict, default=None
+    importance_func : str, callable, list, tuple or dict, default=None
     
         Strategy to evaluate feature importance score.
         If `importance` represents a single score, one can use:
         - a single string (see :ref:`importance_parameter`);
         - a callable (see :ref:`importance`) that returns a list of values.
         
+    evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
+        Function to evaluate prediction performance.
         
-    noise_type: str (train/test split or noise addiction)
-    
-    split_proportion: float in (0,1). need to specify if noise_type=='split'
-    
-    sigma: float, level of noise. need to specify if noise_type!='split'
-    
-    
+    K_max: int 
+        Number of top features of interest.
+
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
+
+    split_proportion: float in (0,1). 
+        Proportion of training set in data spliting. 
     
+    get_prediction_consistency: {True,False}
+        Constrols whether to calculate prediction consistency. 
     
+
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
     
-    Attributes
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+    
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
     
-    prediction_score: mse or accuracy.. 
-        a list with length = n_repeat
+    prediction_score: array of shape (n_repeat, )
+        Prediction error
+            
+    importance_score: array of shape (n_repeat, M)
+        Importance scores of each feature in each repeat 
     
-    importance_score: 
-        a n_repeat*M matrix
-
+    accuracy: pandas dataframe of shape (n_repeat,3), columns = [data,model,Accuracy]    
+        IML model prediction accuracy of each repeat.
+            data: name of data set
+            model: ML prediction model.  
+            Accuracy: prediction accuracy scores of each repeat.
     
+    consistency: pandas dataframe of shape (n_repeat,6), columns = [data,method, criteria,K,Consistency, Accuracy] 
+        IML model interpretation consistency and prediction accuracy 
+            data: name of data set
+            method: IML methods. 
+            criteria: consistency metrics. 
+            K: number of top features.
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average prediction accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
+    
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy, Purity] 
+        IML model prediction consistency score
+        
+            data: name of data set
+            model: ML prediction model.  
+            Entropy: prediction entropy, higher entropy indicates lower consistency.
+            Purity: consistency score converted from entropy, ranges in [0,1] and higher purity indicates higher consistency.
     """
+    
     def __init__(self,data,importance_func, 
                  estimator=None,
                  evaluate_fun=accuracy_score,
-                K_max = 30,
+                 K_max = 30,
                  n_repeat=100,
                  split_proportion=0.7,
-                get_prediction_consistency=True,
+                 get_prediction_consistency=True,
                  norm=True,
-                rand_index=None,
-                verbose=True):
+                 rand_index=None,
+                 verbose=True):
 
         self.evaluate_fun=evaluate_fun
         self.split_proportion=split_proportion

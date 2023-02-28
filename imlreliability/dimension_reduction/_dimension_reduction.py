@@ -13,36 +13,79 @@ class dimension_reduction():
     """ 
     Parameters
     ----------
-    data: 
-        X: N*M numpy array
-    label:    
-        Y: N*1 numpy array 
-        
-    estimator : dimension reduction estimator object
+    data: arrary of shape (N,M)
+            
+    estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
-   
-    cluster_func: clustering object applied to reduced dimension
     
-    noise_type: str (train/test split or noise addiction)
+    K: int
+        Number of clusters. 
     
-    split_proportion: float in (0,1). need to specify if noise_type=='split'
+    label: array of shape (N,1) or None. default = None.
+        True cluster labels
+
+    perturbation: {'noise','split'}
+        Controls the way of perturbation. 
+            noise: conduct noise addition.
+            split: conduct data splitting. 
+            
+    noise_type: {'normal','laplace'}. need to specify if noise_type=='noise'
+        Distirbution type of noise. 
+
+    sigma: float. need to specify if noise_type=='noise'
+        Conrtols variance of noise distribution 
     
-    sigma: float, level of noise. need to specify if noise_type!='split'
-    
-    
-    n_repeat: int, default=100
+    rank: int. default=2
+        Number of reducted dimensions.
+        
+    split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
+        Proportion of training set in data spliting.
+
+    n_repeat: int. default=100
         Number of repeats to measure consistency (run in parallel).
-    
-    
-    
-    Attributes
+
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
+
+    stratify: {True,False}
+          Controls whether to conduct stratified sampling     
+          
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
+    accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation,clustering, noise, sigma, rank, criteria,Accuracy]    
+        IML model clustering accuracy of each repeat.
+            data: name of data set
+            method: IML methods. 
+            perturbation: type of perturbation.
+            clustering: clustering method applied on reduced dimensions.
+            noise: type of noise added.
+            sigma: level of variance of noise added. 
+            rank: rank of reduced dimensions.
+            criteria: consistency metrics. 
+            Accuracy: clustering accuracy scores of each repeat.
     
-    clustering_accuracy: ARI with label  
-        a list with length = n_repeat
-    
-    consistency: 
-        a list with length = n_repeat*(n_repate-1)/2
+    results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation,clustering, noise, sigma, rank,  criteria, Consistency , Accuracy] 
+        IML model interpretation consistency and prediction accuracy 
+            data: name of data set
+            method: IML methods. 
+            perturbation: type of perturbation.
+            clustering: clustering method applied on reduced dimensions.
+            noise: type of noise added.
+            sigma: level of variance of noise added. 
+            rank: rank of reduced dimensions.
+            criteria: consistency metrics. 
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average clustering accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
+   
 
     
     """
@@ -50,18 +93,17 @@ class dimension_reduction():
                  K,
                  label=None,
                  perturbation = 'noise',
-                 sigma=1,rank=2,
                  noise_type='normal',
+                 sigma=1,
+                 rank=2,
                  split_proportion=0.7,
                  n_repeat=50,
-                 rand_index=1,
-#                  user_metric= None,
-#                  user_metric_name='user_metric',
                  norm=True,
                  stratify=True,
-                    verbose=True):
+                 rand_index=1,
+                 verbose=True):
+        
         self.perturbation=perturbation
-
         self.sigma=sigma
         self.noise_type=noise_type
         self.split_proportion=split_proportion
@@ -116,6 +158,65 @@ class dimension_reduction():
                                cluster_func_name='HC (ward)',user_metric=None,user_metric_name=None
                               ):
 
+        
+        """ 
+        Parameters
+        ----------
+        data_name: str. 
+            Name of data set. 
+
+        method_name: str. 
+            Name of dimension reduction method. 
+
+        cluster_func: callable. 
+            clustering object applied to reduced dimension
+
+        cluster_func_name: str.  
+            Name of clustering function. 
+
+        user_metric: callable. default = None.
+            User defined evaluation metric for consistency. 
+
+
+        user_metric_name: str. default = 'user_metric'.
+            Name of user defined metric. 
+
+
+        Returns
+        ----------
+
+
+        accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation,clustering, noise, sigma, rank, criteria,Accuracy]    
+            IML model clustering accuracy of each repeat.
+                data: name of data set
+                method: IML methods. 
+                perturbation: type of perturbation.
+                clustering: clustering method applied on reduced dimensions.
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                rank: rank of reduced dimensions.
+                criteria: consistency metrics. 
+                Accuracy: clustering accuracy scores of each repeat.
+
+        results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation,clustering, noise, sigma, rank,  criteria, Consistency , Accuracy] 
+            IML model interpretation consistency and clustering accuracy 
+                data: name of data set
+                method: IML methods. 
+                perturbation: type of perturbation.
+                clustering: clustering method applied on reduced dimensions.
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                rank: rank of reduced dimensions.
+                criteria: consistency metrics. 
+                Consistency: average pairwise consistency scores. 
+                Accuracy: average clustering accuracy scores. 
+
+
+            Can be saved and upload to dashboard. 
+
+        """        
+        
+ 
         if cluster_func is None:
             cluster_func=AgglomerativeClustering(n_clusters=self.K)
 
@@ -178,14 +279,14 @@ class dimension_reduction():
             for cri,cri_func in criterias:
                 self.accuracy_values[cri] = pd.DataFrame(
                                     {'data':data_name,
-                                      'method':method_name,
+                                     'method':method_name,
                                      'perturbation':self.perturbation,
                                      'clustering':cluster_func_name,
-                                      'noise':self.noise_type,
-                                      'sigma':self.sigma,
-                                         'rank':self.rank,
-                                      'criteria':cri,
-                                    'Accuracy':[round(cri_func(label_true[y], self.predicted_label[y]),3) for y in range(self.n_repeat)]                                       
+                                     'noise':self.noise_type,
+                                     'sigma':self.sigma,
+                                     'rank':self.rank,
+                                     'criteria':cri,
+                                     'Accuracy':[round(cri_func(label_true[y], self.predicted_label[y]),3) for y in range(self.n_repeat)]                                       
                                      }
                              )            
 
@@ -202,6 +303,51 @@ class dimension_reduction():
 
         
     def consistency_knn(self,data_name,method_name,Kranges=None):
+        """ 
+        Parameters
+        ----------
+        data_name: str. 
+            Name of data set. 
+
+        method_name: str. 
+            Name of dimension reduction method. 
+
+        Kranges: list of int.  
+            list of numbers of nearest neighbors. 
+
+
+        Returns
+        ----------
+
+
+        consistency_knn: pandas dataframe of shape (n_repeat,9), columns = [data,method,noise, sigma, rank, K, criteria,Consistency]    
+
+            Jaccard consistency scores in reducted dimensions under each K of each repeat.
+                data: name of data set
+                method: IML methods. 
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                rank: rank of reduced dimensions.
+                K: number of nearest neighbors. 
+                criteria: consistency metrics. 
+                Consistency: consistency scores of each repeat.
+
+        AUC: pandas dataframe of shape (n_repeat,8), columns = [data,method, noise, sigma, rank,  criteria, Consistency] 
+            AUC scores of model interpretation consistency. 
+                data: name of data set
+                method: IML methods. 
+                clustering: clustering method applied on reduced dimensions.
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                rank: rank of reduced dimensions.
+                criteria: consistency metrics. 
+                Consistency: average AUC consistency scores. 
+
+
+            Can be saved and upload to dashboard. 
+
+        """        
+        
         x = self.X
         if self.perturbation!='noise':
             raise ValueError("KNN consistency requires perturbation being 'noise'")
@@ -229,7 +375,7 @@ class dimension_reduction():
                                                Kr,'Jaccard',np.mean(jaccard)]
 
             self.consistency_knn_mean =self.consistency_knn.groupby(['data','method','noise','sigma','rank','K','criteria'],as_index=False).mean('Consistency')
-            self.aucc = self.consistency_knn_mean.groupby(['data','method','noise','sigma','criteria','rank'])['Consistency'].apply(get_auc).reset_index()
+            self.AUC = self.consistency_knn_mean.groupby(['data','method','noise','sigma','rank','criteria'])['Consistency'].apply(get_auc).reset_index()
 
 
     

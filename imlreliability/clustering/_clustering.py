@@ -11,37 +11,84 @@ class clustering():
     """ 
     Parameters
     ----------
-    data: 
-        X: N*M numpy array
-    label:    
-        Y: N*1 numpy array 
-        
-    estimator : clustering estimator object
+    data: arrary of shape (N,M)
+            
+    estimator : estimator object
         This is assumed to implement the scikit-learn estimator interface.
-   
-        
-    noise_type: str, noise or laplace noise 
     
+    K: int
+        Number of clusters. 
     
-    sigma: float, variance of noise addition. 
-    
+    label: array of shape (N,1) or None. default = None.
+        True cluster labels
+
+    perturbation: {'noise','split'}
+        Controls the way of perturbation. 
+            noise: conduct noise addition.
+            split: conduct data splitting. 
+            
+    noise_type: {'normal','laplace'}. need to specify if noise_type=='noise'
+        Distirbution type of noise. 
+
+    sigma: float. need to specify if noise_type=='noise'
+        Conrtols variance of noise distribution 
     
     n_repeat: int, default=100
         Number of repeats to measure consistency (run in parallel).
-    
-    
-    
-    Attributes
+
+    split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
+        Proportion of training set in data spliting.
+        
+    user_metric: callable. default = None.
+        User defined evaluation metric for consistency. 
+        
+        
+    user_metric_name: str. default = 'user_metric'.
+        Name of user defined metric. 
+        
+    norm: {True,False}
+        Constrols whether to conduct data normalization. 
+
+    stratify: {True,False}
+          Controls whether to conduct stratified sampling     
+          
+    rand_index: RandomState instance
+          Make sure the sampling uses the same RandomState instance for all iterations.
+
+    verbose: {True,False}
+        Controls the verbosity.
+
+    Returns
     ----------
     
-    clustering_accuracy: ARI with label  
-        a list with length = n_repeat
-    
-    consistency: 
-        a list with length = n_repeat*(n_repate-1)/2
 
+    accuracy_values: pandas dataframe of shape (n_repeat,7), columns = [data,method, perturbation, noise, sigma, criteria,Accuracy]    
+        IML model clustering accuracy of each repeat.
+            data: name of data set
+            method: IML methods. 
+            perturbation: type of perturbation.
+            noise: type of noise added.
+            sigma: level of variance of noise added. 
+            criteria: consistency metrics. 
+            Accuracy: clustering accuracy scores of each repeat.
+    
+    results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation, noise, sigma, criteria, Consistency  Accuracy] 
+        IML model interpretation consistency and clustering accuracy 
+            data: name of data set
+            method: IML methods. 
+            perturbation: type of perturbation.
+            noise: type of noise added.
+            sigma: level of variance of noise added. 
+            criteria: consistency metrics. 
+            Consistency: average pairwise consistency scores. 
+            Accuracy: average clustering accuracy scores. 
+ 
+ 
+        Can be saved and upload to dashboard. 
     
     """
+    
+
     def __init__(self,data,estimator,K,
                  label=None,
                  perturbation = 'noise',
@@ -51,10 +98,10 @@ class clustering():
                  split_proportion=0.7,
                  user_metric= None,
                  user_metric_name='user_metric',
-                  rand_index=None,
-                norm=True,
+                 rand_index=None,
+                 norm=True,
                  stratify=True,
-                    verbose=True):
+                 verbose=True):
         
 #          if perturbation not in ['noise','split']:
              
