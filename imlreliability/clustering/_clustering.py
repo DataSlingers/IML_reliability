@@ -149,7 +149,7 @@ class clustering():
 
 
 
-    def consistency(self,data_name,method_name):
+    def get_consistency(self,data_name,method_name):
         ####### pairwise consistency 
         
         

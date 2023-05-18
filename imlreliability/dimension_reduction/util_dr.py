@@ -72,7 +72,8 @@ def internal_resample(x,y=None,random_index=None, proportion=0.7,stratify=False)
         
     indices_test: array of shape (n_sampple*(1-proportion),)
         indices of test samples
-    """    indices =range(len(x))
+    """    
+    indices =range(len(x))
     if y is None:
         y=indices
     if stratify:

@@ -9,7 +9,8 @@ from sklearn.base import is_classifier, is_regressor
 from sklearn.preprocessing import scale,normalize
 import collections
 import tensorflow as tf
-tf.config.run_functions_eagerly(True)
+# tf.enable_eager_execution()
+# tf.executing_eagerly()
 from tensorflow.python.keras.models import Sequential, Model
 from tensorflow.python.keras.layers import Dense, Activation
 from tensorflow.python.keras.models import model_from_json
@@ -24,6 +25,7 @@ from deeplift.conversion import kerasapi_conversion as kc
 from .rbo import RankingSimilarity
 from .util_feature_impo import (internal_resample,clean_score,get_rank,jaccard_similarity)
 
+from deepexplain.tensorflow import DeepExplain
 
 
 def _consistency(estimator, scores, accuracys, data_name,estimator_name,impotance_func_name=None, Ks=range(1,31,1)):
@@ -325,7 +327,7 @@ class feature_impoReg():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+    def get_consistency(self,data_name,estimator_name,impotance_func_name=None):
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name,range(1,self.K_max,1))
         
 
@@ -433,7 +435,7 @@ class feature_impoClass():
         self.norm=norm
         self.data=data
         (self.X,self.Y) = self.data
-        self.M=len(X[0])
+        self.M=len(self.X[0])
         self.K_max=min(K_max+1,len(self.X[0])+1)
         
         self.estimator=estimator
@@ -542,7 +544,7 @@ class feature_impoClass():
         
         return clean_score(s)
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+    def get_consistency(self,data_name,estimator_name,impotance_func_name=None):
         
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
@@ -666,9 +668,7 @@ class feature_impoReg_MLP():
     def _base_model_regression(self):
         model = Sequential()
         model.add(Dense(self.M, input_dim=self.M, activation='relu'))
-        model.add(Dense(self.M, input_dim=self.M, activation='relu'))
-        
-    
+        model.add(Dense(self.M, input_dim=self.M, activation='relu'))    
         model.add(Dense(1, kernel_initializer='normal'))
         model.compile(loss='mean_squared_error', optimizer='adam')
         return model   
@@ -702,7 +702,7 @@ class feature_impoReg_MLP():
             print(impo_pack)
             if np.isin('permutation_importance',impo_pack):
                 my_model = KerasRegressor(build_fn=self._base_model_regression)
-                my_model.fit(x_train,y_train)
+                my_model.fit(x_train,y_train,verbose=0)
                 perm = self.importance_func(my_model).fit(x_test,y_test)
                 s=perm.feature_importances_
             else:
@@ -715,7 +715,7 @@ class feature_impoReg_MLP():
   
         else: ## if input is string 
             if np.isin(self.importance_func,de_methods):        
-                model = load_model(self.saved_model_file,compile=False)
+                model = self.estimator
                 print('DeepExplain')
                 with DeepExplain(session=K.get_session()) as de:  # <-- init DeepExplain context
                         input_tensor = model.layers[0].input
@@ -733,7 +733,7 @@ class feature_impoReg_MLP():
                     print('DeepLift')
                     dl_model = kc.convert_model_from_saved_files(
                                                 h5_file=self.saved_model_file,
-                                                nonlinear_mxts_mode=(self.importance_func))
+                                                nonlinear_mxts_mode=(eval(self.importance_func)))
 
                     dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
                                                                 target_layer_idx=self.target_layer)
@@ -770,14 +770,13 @@ class feature_impoReg_MLP():
 
                 y_train=(scale(y_train))
                 y_test =(scale(y_test))
-            self.estimator.fit(x_train,y_train)
+            self.estimator.fit(x_train,y_train,verbose=0)
             ##########
             model_json = self.estimator.to_json()
             with open("mlp_reg_"+str(i)+".json", "w") as json_file:
                     json_file.write(model_json)
 
-                # serialize weights to HDF5
-            self.estimator.save("mlp_reg_"+str(i)+".h5")
+            self.estimator.save("mlp_reg_"+str(i)+".h5",overwrite=True)
             ######################
             self.saved_model_file= "mlp_reg_"+str(i)+".h5"
         
@@ -798,7 +797,7 @@ class feature_impoReg_MLP():
                 self.test_yhat.append(this_pred)
                     
 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+    def get_consistency(self,data_name,estimator_name,impotance_func_name=None):
        
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
@@ -963,7 +962,7 @@ class feature_impoClass_MLP():
             if np.isin('permutation_importance',impo_pack):
                 ### need _base_model_classification instead of _base_model_classification()
                 my_model = KerasClassifier(build_fn=self._base_model_classification)
-                my_model.fit(x_train,y_train)
+                my_model.fit(x_train,y_train,verbose=0)
                 perm = self.importance_func(my_model).fit(x_test,y_test)
                 s=perm.feature_importances_
             
@@ -987,7 +986,7 @@ class feature_impoClass_MLP():
         else: ## if input is string 
             if np.isin(self.importance_func,de_methods):  
                 print(self.importance_func)
-                model = load_model(self.saved_model_file,compile=False)
+                model = self.estimator
                 print('DeepExplain')
                 with DeepExplain(session=K.get_session()) as de:  # <-- init DeepExplain context
                         input_tensor = model.layers[0].input
@@ -1006,7 +1005,7 @@ class feature_impoClass_MLP():
 
                     dl_model = kc.convert_model_from_saved_files(
                                                 h5_file=self.saved_model_file,
-                                                nonlinear_mxts_mode=(self.importance_func))
+                                                nonlinear_mxts_mode=(eval(self.importance_func)))
 
                     dl_func = dl_model.get_target_contribs_func(find_scores_layer_idx=0, 
                                                                 target_layer_idx=self.target_layer)
@@ -1022,7 +1021,6 @@ class feature_impoClass_MLP():
                     s=scor.mean(0)   
 #                 except:
 #                     print('Invalid feature importance function')
-        print(s)
         return clean_score(s)
         
 
@@ -1053,9 +1051,9 @@ class feature_impoClass_MLP():
             yy_test =np.array(yy_test.reindex(columns = yy_train.columns, fill_value=0))
             yy_train = np.array(yy_train)
             try:
-                self.estimator.fit(x_train,y_train)
+                self.estimator.fit(x_train,y_train,verbose=0)
             except:
-                self.estimator.fit(x_train,yy_train)
+                self.estimator.fit(x_train,yy_train,verbose=0)
             if  self.importance_func .__class__!=str and np.isin('permutation_importance',self.importance_func.__module__.split('.')):
                 s = self._impo_score(x_train,y_train, x_test,y_test)
             else:
@@ -1090,7 +1088,8 @@ class feature_impoClass_MLP():
                 self.test_yhat.append(this_pred)
                 
                 
-    def consistency(self,data_name,estimator_name,impotance_func_name=None):
+    def get_consistency(self,data_name,estimator_name,impotance_func_name=None):
+        
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name, range(1,self.K_max,1))
 
         if self.get_prediction_consistency ==True:

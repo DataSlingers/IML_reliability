@@ -154,7 +154,7 @@ class dimension_reduction():
 
 
 
-    def consistency_clustering(self,data_name,method_name,cluster_func=None,
+    def get_consistency_clustering(self,data_name,method_name,cluster_func=None,
                                cluster_func_name='HC (ward)',user_metric=None,user_metric_name=None
                               ):
 
@@ -302,7 +302,7 @@ class dimension_reduction():
             self.results['Accuracy']= np.nan
 
         
-    def consistency_knn(self,data_name,method_name,Kranges=None):
+    def get_consistency_knn(self,data_name,method_name,Kranges=None):
         """ 
         Parameters
         ----------
@@ -372,7 +372,7 @@ class dimension_reduction():
                     self.consistency_knn.loc[len(self.consistency_knn)]=[data_name,method_name,
                                                self.noise_type,
                                                self.sigma, self.rank,
-                                               Kr,'Jaccard',np.mean(jaccard)]
+                                               Kr,'NN-Jaccard-AUC',np.mean(jaccard)]
 
             self.consistency_knn_mean =self.consistency_knn.groupby(['data','method','noise','sigma','rank','K','criteria'],as_index=False).mean('Consistency')
             self.AUC = self.consistency_knn_mean.groupby(['data','method','noise','sigma','rank','criteria'])['Consistency'].apply(get_auc).reset_index()
