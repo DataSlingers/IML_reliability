@@ -1,7 +1,8 @@
 # IML reliability
 
 
-
+imlreliability provides a unified framework for the reliability test based on repeated data perturbation, as specified in paper... Users are free to implement their own IML methodology, data set or consistency metrics. 
+The output can be directly uploaed and compare to our reliability experiments in the dashboard [https://iml-reliability.herokuapp.com]
 
 
 
@@ -16,6 +17,7 @@ Clone this repo and run
 
 
 **The dependencies of this package will be automatically installed into your environment.**
+
 
 
 ## API Documentations
