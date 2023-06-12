@@ -48,7 +48,7 @@ class dimension_reduction():
         Controls whether to conduct data normalization. 
 
     stratify: {True,False}
-          Controls whether to conduct stratified sampling     
+          Controls whether to conduct stratified sampling, default= False    
           
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -99,7 +99,7 @@ class dimension_reduction():
                  split_proportion=0.7,
                  n_repeat=50,
                  norm=True,
-                 stratify=True,
+                 stratify=False,
                  rand_index=1,
                  verbose=True):
         
@@ -141,9 +141,8 @@ class dimension_reduction():
                            sigma=self.sigma,
                            random_index=i*self.rand_index)
             else:
-                x_new, x_test, y_train, y_test,indices_train,indices_test  = internal_resample(self.X, 
-                                                                                               self.label, 
-                                                                                      proportion=self.split_proportion,
+                x_new, x_test, y_train, y_test,indices_train,indices_test  = internal_resample(self.X,
+                                                                                               self.label,                                                                                       proportion=self.split_proportion,stratify=self.stratify,
                                                                                        random_index=i*self.rand_index)  
                 
                 self.split_train_ind.append(indices_train)
@@ -155,7 +154,7 @@ class dimension_reduction():
 
 
     def get_consistency_clustering(self,data_name,method_name,cluster_func=None,
-                               cluster_func_name='HC (ward)',user_metric=None,user_metric_name=None
+                               cluster_func_name='HC (ward)',user_metric=None,user_metric_name='user_metric'
                               ):
 
         

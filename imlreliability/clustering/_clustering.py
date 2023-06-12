@@ -39,18 +39,13 @@ class clustering():
     split_proportion: float in (0,1)
         The proportion of training set in data splitting, default=0.7. Need to specify if noise_type=='split'
         
-    user_metric: callable. 
-        User-defined evaluation metric for consistency, default = None.
-        
-        
-    user_metric_name: str. 
-        Name of user-defined metric, default = 'user_metric'.
+
         
     norm: {True,False}
         Controls whether to conduct data normalization. 
 
     stratify: {True,False}
-          Controls whether to conduct stratified sampling     
+          Controls whether to conduct stratified sampling, default=False   
           
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
@@ -96,11 +91,9 @@ class clustering():
                  noise_type='normal',  
                  n_repeat=100,
                  split_proportion=0.7,
-                 user_metric= None,
-                 user_metric_name='user_metric',
                  rand_index=None,
                  norm=True,
-                 stratify=True,
+                 stratify=False,
                  verbose=True):
         
 #          if perturbation not in ['noise','split']:
@@ -118,10 +111,8 @@ class clustering():
         self.X=data
         self.label=label
         self.estimator=estimator
-        self.user_metric=user_metric
-        self.user_metric_name=user_metric_name
         self.rand_index=rand_index
-            
+        stratify=self.stratify
         if norm == True:
              self.X = normalize(scale(self.X))
     def fit(self, *args,**kwargs):
@@ -137,7 +128,7 @@ class clustering():
                            random_index=i*self.rand_index)
             else:
                 x_new, x_test, y_train, y_test,indices_train,indices_test  = internal_resample(self.X, self.label, 
-                                           proportion=self.split_proportion,
+                                           proportion=self.split_proportion,stratify=self.stratify,
                            random_index=i*self.rand_index)                
                 self.split_train_ind.append(indices_train)
             
@@ -149,17 +140,62 @@ class clustering():
 
 
 
-    def get_consistency(self,data_name,method_name):
-        ####### pairwise consistency 
+    def get_consistency(self,data_name,method_name,user_metric=None,user_metric_name='user_metric'):
+        """ 
+        Parameters
+        ----------
+        data_name: str. 
+            Name of the data set. 
+
+        method_name: str. 
+            Name of dimension reduction method. 
+
+        user_metric: callable. 
+            User-defined evaluation metric for consistency, default = None.
+
+
+        user_metric_name: str. 
+            Name of user-defined metric, default = 'user_metric'.    
+
+
+        Returns
+        ----------
+
+
+        accuracy_values: pandas data frame of shape (n_repeat,7), columns = [data,method, perturbation, noise, sigma, criteria,Accuracy]    
+            IML model clustering accuracy of each repeat.
+                data: name of data set
+                method: IML methods. 
+                perturbation: type of perturbation.
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                criteria: consistency metrics. 
+                Accuracy: clustering accuracy scores of each repeat.
+
+        results: pandas dataframe of shape (n_repeat,8), columns = [data,method, perturbation, noise, sigma,  criteria, Consistency , Accuracy] 
+            IML model interpretation consistency and clustering accuracy 
+                data: name of data set
+                method: IML methods. 
+                perturbation: type of perturbation.
+                noise: type of noise added.
+                sigma: level of variance of noise added. 
+                criteria: consistency metrics. 
+                Consistency: average pairwise consistency scores. 
+                Accuracy: average clustering accuracy scores. 
+
+            Can be saved and uploaded to the dashboard. 
+
+        """        
         
+        ####### pairwise consistency 
         
         self.consistency_values={}
         criterias = [('ARI',adjusted_rand_score),
                     ('Mutual Information',adjusted_mutual_info_score),
                     ('V Measure Score',v_measure_score),
                     ('Fowlkes Mallows Score',fowlkes_mallows_score)]
-        if self.user_metric is not None:
-            criterias=criterias+[(self.user_metric_name,self.user_metric)]
+        if user_metric is not None:
+            criterias=criterias+[(user_metric_name,user_metric)]
             
             
         for cri in criterias:
