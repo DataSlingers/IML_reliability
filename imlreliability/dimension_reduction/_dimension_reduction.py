@@ -35,8 +35,8 @@ class dimension_reduction():
     sigma: float. need to specify if noise_type=='noise'
         Controls variance of noise distribution 
     
-    rank: int. default=2
-        The number of reduced dimensions.
+    rank: int. 
+        The number of reduced dimensions, default=2.
         
     split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
         The proportion of training set in data splitting.
@@ -174,8 +174,8 @@ class dimension_reduction():
         cluster_func_name: str.  
             Name of clustering function. 
 
-        user_metric: callable. default = None.
-            The user-defined evaluation metric for consistency. 
+        user_metric: callable. 
+            The user-defined evaluation metric for consistency, default = None.
 
 
         user_metric_name: str. default = 'user_metric'.

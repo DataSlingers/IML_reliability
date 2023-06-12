@@ -19,8 +19,8 @@ class clustering():
     K: int
         The number of clusters. 
     
-    label: array of shape (N,1) or None. default = None.
-        True cluster labels
+    label: array of shape (N,1) or None
+        True cluster labels,  default = None.
 
     perturbation: {'noise','split'}
         Controls the way of perturbation. 
@@ -33,18 +33,18 @@ class clustering():
     sigma: float. need to specify if noise_type=='noise'
         Controls variance of noise distribution 
     
-    n_repeat: int, default=100
-        The number of repeats to measure consistency (run in parallel).
+    n_repeat: int
+        The number of repeats to measure consistency (run in parallel), default=100
 
-    split_proportion: float in (0,1). default=0.7. need to specify if noise_type=='split'
-        The proportion of training set in data splitting.
+    split_proportion: float in (0,1)
+        The proportion of training set in data splitting, default=0.7. Need to specify if noise_type=='split'
         
-    user_metric: callable. default = None.
-        User-defined evaluation metric for consistency. 
+    user_metric: callable. 
+        User-defined evaluation metric for consistency, default = None.
         
         
-    user_metric_name: str. default = 'user_metric'.
-        Name of user-defined metric. 
+    user_metric_name: str. 
+        Name of user-defined metric, default = 'user_metric'.
         
     norm: {True,False}
         Controls whether to conduct data normalization. 
@@ -94,7 +94,7 @@ class clustering():
                  perturbation = 'noise',
                  sigma=1,
                  noise_type='normal',  
-                 n_repeat=50,
+                 n_repeat=100,
                  split_proportion=0.7,
                  user_metric= None,
                  user_metric_name='user_metric',

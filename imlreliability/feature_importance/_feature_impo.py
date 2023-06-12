@@ -68,7 +68,6 @@ def _consistency(estimator, scores, accuracys, data_name,estimator_name,impotanc
             
             accuracy = pd.DataFrame({'data':data_name,
                                           'model':estimator_name,
-#                                           'nosie':noise_type,
                                           'Accuracy':accuracys
                                          
                                          })
@@ -151,23 +150,20 @@ class feature_impoReg():
     n_repeat: int, default=100
         The number of repeats to measure consistency (run in parallel).
 
-    split_proportion: float in (0,1). 
+    split_proportion: float in (0,1), default=0.7.
         The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Controls whether to calculate prediction consistency. 
-    
-    sigma: float, 
-        Controls level of noise. need to specify if noise_type!='split'. 
-    
+        Controls whether to calculate prediction consistency, default = True.
+     
     norm: {True,False}
-        Controls whether to conduct data normalization. 
+        Controls whether to conduct data normalization, default = True.
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
     
     verbose: {True,False}
-        Controls the verbosity.
+        Controls the verbosity, default = True.
 
     Returns
     ----------
@@ -196,7 +192,7 @@ class feature_impoReg():
  
         Can be saved and uploaded to the dashboard. 
     
-    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy    Purity] 
+    prediction_consistency: pandas dataframe of shape (n_repeat,4), columns = [data,model, Entropy, Purity] 
         IML model prediction consistency score
         
             data: name of data set
@@ -256,7 +252,7 @@ class feature_impoReg():
 
             
             self.fitted = self.estimator.fit(x_train,y_train)
-            s=self._impo_score(x_train,y_train,x_test)
+            s=self._impo_score(x_train,y_train)
             this_yhat = self.fitted.predict(x_test)
 
             acc = self.evaluate_fun(this_yhat,y_test)
@@ -271,13 +267,12 @@ class feature_impoReg():
                 self.test_yhat.append(this_pred)
                 
     def _impo_score(self,
-           x_train,
-           y_train,
-           x_test):
+           x,
+           y):
         yhat = self.fitted.predict
             
             
-        x_train,x_test=np.array(x_train, dtype=float),np.array(x_test, dtype=float) ## shap has error
+        x=np.array(x, dtype=float) ## shap has error
         scoring=self.evaluate_fun
         packs = self.fitted.__module__.split('.')
 
@@ -296,15 +291,15 @@ class feature_impoReg():
                 if np.isin('_permutation',impo_pack):
                     
                     
-                    explainer =self.importance_func(yhat,x_train)
+                    explainer =self.importance_func(yhat,x)
 #                     return explainer,x_test,yhat
                  
                 elif np.isin('_linear',impo_pack):
-                    explainer =self.importance_func(self.fitted,x_train)
+                    explainer =self.importance_func(self.fitted,x)
                 else:
                 #if np.isin('_tree',impo_pack):
                     explainer =self.importance_func(self.fitted,check_additivity=False)
-                s = explainer(x_test)[0].values.T.tolist()
+                s = explainer(x)[0].values.T.tolist()
 
             
                 
@@ -319,15 +314,16 @@ class feature_impoReg():
 
 
             elif np.isin('_permutation_importance',impo_pack):
-                s = self.importance_func(self.fitted,x_train, y_train).importances_mean
+                s = self.importance_func(self.fitted,x, y).importances_mean
         #### use user-defined importance function
         
             else:
-                s = self.importance_func(self.fitted,x_train, y_train)
+                s = self.importance_func(self.fitted,x, y)
         
         return clean_score(s)
 
     def get_consistency(self,data_name,estimator_name,impotance_func_name=None):
+        
         self.consistency,self.accuracy =_consistency(self.estimator, self.scores, self.accuracys, data_name,estimator_name,impotance_func_name,range(1,self.K_max,1))
         
 
@@ -360,26 +356,26 @@ class feature_impoClass():
     evaluate_fun: str, callable, list, tuple or dict, default=mean_squared_error
         Function to evaluate prediction performance.
         
-    K_max: int 
-        The number of top features of interest.
+    K_max: int
+        The number of top features of interest, default = 30.
 
-    n_repeat: int, default=100
-        The number of repeats to measure consistency (run in parallel).
+    n_repeat: int
+        The number of repeats to measure consistency (run in parallel), default=100
 
     split_proportion: float in (0,1). 
-        The proportion of training set in data splitting. 
+        The proportion of training set in data splitting, default=0.7.
     
     get_prediction_consistency: {True,False}
-        Controls whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency, default=True.
     
     norm: {True,False}
-        Controls whether to conduct data normalization. 
+        Controls whether to conduct data normalization, default=True. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
     
     verbose: {True,False}
-        Controls the verbosity.
+        Controls the verbosity, default=True.
 
     Returns
     ----------
@@ -467,7 +463,7 @@ class feature_impoClass():
 
             
             self.fitted = self.estimator.fit(x_train,y_train)
-            s=self._impo_score(x_train,y_train,x_test,y_test)
+            s=self._impo_score(x_train,y_train)
             this_yhat = self.fitted.predict(x_test)
             acc = self.evaluate_fun(this_yhat,y_test)
                 
@@ -479,16 +475,14 @@ class feature_impoClass():
                     this_pred[item] = this_yhat[a]
                 self.test_yhat.append(this_pred)
     def _impo_score(self,
-           x_train,
-           y_train,
-           x_test,y_test):
+           x,y):
         try:
             yhat = self.fitted.predict_proba
         except:
             yhat = self.fitted.predict
             
             
-        x_train,x_test=np.array(x_train, dtype=float),np.array(x_test, dtype=float) ## shap has error
+        x=np.array(x, dtype=float)
         scoring=self.evaluate_fun
         packs = self.fitted.__module__.split('.')
 
@@ -507,19 +501,18 @@ class feature_impoClass():
                 if np.isin('_permutation',impo_pack):
                     
                     
-                    explainer =self.importance_func(yhat,x_train)
-#                     return explainer,x_test,yhat
+                    explainer =self.importance_func(yhat,x)
                  
                 elif np.isin('_linear',impo_pack):
-                    explainer =self.importance_func(self.fitted,x_train)
+                    explainer =self.importance_func(self.fitted,x)
                 else:
                 #if np.isin('_tree',impo_pack):
                     explainer =self.importance_func(self.fitted,check_additivity=False)
                 try:
-                    s = explainer(x_test)[0].values.T.tolist()
+                    s = explainer(x)[0].values.T.tolist()
 
                 except:
-                    s = explainer(x_test,check_additivity=False)[0].values.T.tolist()
+                    s = explainer(x,check_additivity=False)[0].values.T.tolist()
 #             elif np.isin('lime',impo_pack):    
 #                 explainer =self.importance_func(x_train,
 #                             class_names=list(set(y_train)),
@@ -537,10 +530,10 @@ class feature_impoClass():
 
 
             elif np.isin('_permutation_importance',impo_pack):
-                s = self.importance_func(self.fitted,x_train, y_train).importances_mean
+                s = self.importance_func(self.fitted,x, y).importances_mean
         
             else:
-                s = self.importance_func(self.fitted,x_train, y_train)
+                s = self.importance_func(self.fitted,x, y)
         
         return clean_score(s)
 
@@ -577,26 +570,26 @@ class feature_impoReg_MLP():
         Function to evaluate prediction performance.
         
     K_max: int 
-        The number of top features of interest.
+        The number of top features of interest, default=30.
 
-    n_repeat: int, default=100
-        The number of repeats to measure consistency (run in parallel).
+    n_repeat: int 
+        The number of repeats to measure consistency (run in parallel), default=100.
 
     split_proportion: float in (0,1). 
         The proportion of training set in data splitting. 
     
     get_prediction_consistency: {True,False}
-        Controls whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency, default=True.
     
 
     norm: {True,False}
-        Controls whether to conduct data normalization. 
+        Controls whether to conduct data normalization, default=True.
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
     
     verbose: {True,False}
-        Controls the verbosity.
+        Controls the verbosity, default=True.
 
     Returns
     ----------
@@ -677,9 +670,7 @@ class feature_impoReg_MLP():
         
             
     def _impo_score(self,
-           x_train,
-           y_train,
-           x_test,y_test):
+           x,y):
         
         de_methods = [
                         'zero',
@@ -702,16 +693,16 @@ class feature_impoReg_MLP():
             print(impo_pack)
             if np.isin('permutation_importance',impo_pack):
                 my_model = KerasRegressor(build_fn=self._base_model_regression)
-                my_model.fit(x_train,y_train,verbose=0)
-                perm = self.importance_func(my_model).fit(x_test,y_test)
+                my_model.fit(x,y,verbose=0)
+                perm = self.importance_func(my_model).fit(x,y)
                 s=perm.feature_importances_
             else:
                 model = load_model("mlp_reg_"+str(self.i)+".h5")
                 if np.isin('shap',impo_pack):
-                    background = x_train[np.random.choice(x_train.shape[0], 100, replace=False)]
-                    s = self.importance_func(model, background).shap_values(x_test)
+                    background = x[np.random.choice(x.shape[0], 100, replace=False)]
+                    s = self.importance_func(model, background).shap_values(x)
                 else: ##user defined function 
-                    s = self.importance_func(model,x_train, y_train)
+                    s = self.importance_func(model,x, y)
   
         else: ## if input is string 
             if np.isin(self.importance_func,de_methods):        
@@ -722,8 +713,8 @@ class feature_impoReg_MLP():
                         fModel = Model(inputs=input_tensor, outputs = model.layers[self.target_layer].output)
                         target_tensor = fModel(input_tensor)
 
-                        xs = x_test
-                        ys = np.reshape(y_test, (len(y_test),  1))
+                        xs = x
+                        ys = np.reshape(y, (len(y),  1))
                         attributions = de.explain(self.importance_func, target_tensor, input_tensor, xs, ys=ys)
 
                 s=attributions.mean(0)
@@ -742,8 +733,8 @@ class feature_impoReg_MLP():
                     method_to_task_to_scores = {}
                     scor = np.array(score_func(
                                     task_idx=0,
-                                    input_data_list=[x_test],
-                                    input_references_list=[np.zeros_like(x_test)],
+                                    input_data_list=[x],
+                                    input_references_list=[np.zeros_like(x)],
                                     batch_size=100,
                                     progress_update=None))
                     s=scor.mean(0)
@@ -780,7 +771,7 @@ class feature_impoReg_MLP():
             ######################
             self.saved_model_file= "mlp_reg_"+str(i)+".h5"
         
-            s=self._impo_score(x_train,y_train,x_test,y_test)
+            s=self._impo_score(x_train,y_train)
 
             
     ##### different in MLP!
@@ -832,24 +823,24 @@ class feature_impoClass_MLP():
     K_max: int 
         The number of top features of interest.
 
-    n_repeat: int, default=100
-        The number of repeats to measure consistency (run in parallel).
+    n_repeat: int 
+        The number of repeats to measure consistency (run in parallel), default=100.
 
     split_proportion: float in (0,1). 
-        The proportion of training set in data splitting. 
+        The proportion of training set in data splitting, default=0.7.
     
     get_prediction_consistency: {True,False}
-        Controls whether to calculate prediction consistency. 
+        Controls whether to calculate prediction consistency, default=True.
     
 
     norm: {True,False}
-        Controls whether to conduct data normalization. 
+        Controls whether to conduct data normalization, default=True. 
     
     rand_index: RandomState instance
           Make sure the sampling uses the same RandomState instance for all iterations.
     
     verbose: {True,False}
-        Controls the verbosity.
+        Controls the verbosity, default=True.
 
     Returns
     ----------
@@ -927,8 +918,8 @@ class feature_impoClass_MLP():
         model = Sequential()
         model.add(Dense(self.M, input_dim=self.M, activation='relu'))
         model.add(Dense(self.M, input_dim=self.M, activation='relu'))
-        
-        model.add(Dense(self.num_class, activation='softmax'))
+        model.add(Dense(self.num_class))
+        model.add(Activation('softmax'))
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
        
         return model   
@@ -937,9 +928,7 @@ class feature_impoClass_MLP():
         
             
     def _impo_score(self,
-           x_train,
-           y_train,
-           x_test,y_test):
+           x,y):
         s=None
         de_methods = [
                         'zero',
@@ -962,8 +951,8 @@ class feature_impoClass_MLP():
             if np.isin('permutation_importance',impo_pack):
                 ### need _base_model_classification instead of _base_model_classification()
                 my_model = KerasClassifier(build_fn=self._base_model_classification)
-                my_model.fit(x_train,y_train,verbose=0)
-                perm = self.importance_func(my_model).fit(x_test,y_test)
+                my_model.fit(x,y,verbose=0)
+                perm = self.importance_func(my_model).fit(x,y)
                 s=perm.feature_importances_
             
             
@@ -972,20 +961,14 @@ class feature_impoClass_MLP():
                 ###### Loac MLP model
                 model = load_model("mlp_class_"+str(self.i)+".h5")
                 if np.isin('shap',impo_pack):
-                    background = x_train[np.random.choice(x_train.shape[0], 100, replace=False)]
-                    s = self.importance_func(model, background).shap_values(x_test)
+                    background = x[np.random.choice(x.shape[0], 100, replace=False)]
+                    s = self.importance_func(model, background).shap_values(x)
                 else: 
                     ##user defined function 
-                    s = self.importance_func(model,x_train, y_train)
-              
-            
-                     
-           
-                        
-                        
+                    s = self.importance_func(model,x,y) 
+                                   
         else: ## if input is string 
             if np.isin(self.importance_func,de_methods):  
-                print(self.importance_func)
                 model = self.estimator
                 print('DeepExplain')
                 with DeepExplain(session=K.get_session()) as de:  # <-- init DeepExplain context
@@ -993,9 +976,9 @@ class feature_impoClass_MLP():
                         fModel = Model(inputs=input_tensor, outputs = model.layers[self.target_layer].output)
                         target_tensor = fModel(input_tensor)
 
-                        xs = x_test
-                        ys = np.reshape(y_test, (len(y_test),  1))
-                        attributions = de.explain(self.importance_func, target_tensor, input_tensor, xs, ys=ys)
+                        xs = x
+                        ys=np.array(pd.get_dummies(y))
+                        attributions = de.explain(self.importance_func, target_tensor, input_tensor,xs,ys=ys)
 
                 s=attributions.mean(0)
             else:
@@ -1014,8 +997,8 @@ class feature_impoClass_MLP():
                     method_to_task_to_scores = {}
                     scor = np.array(score_func(
                                     task_idx=0,
-                                    input_data_list=[x_test],
-                                    input_references_list=[np.zeros_like(x_test)],
+                                    input_data_list=[x],
+                                    input_references_list=[np.zeros_like(x)],
                                     batch_size=100,
                                     progress_update=None))
                     s=scor.mean(0)   
@@ -1055,7 +1038,7 @@ class feature_impoClass_MLP():
             except:
                 self.estimator.fit(x_train,yy_train,verbose=0)
             if  self.importance_func .__class__!=str and np.isin('permutation_importance',self.importance_func.__module__.split('.')):
-                s = self._impo_score(x_train,y_train, x_test,y_test)
+                s = self._impo_score(x,y)
             else:
                 
                 ##########
@@ -1068,7 +1051,7 @@ class feature_impoClass_MLP():
                 ######################
                 self.saved_model_file= "mlp_class_"+str(i)+".h5"
 
-                s=self._impo_score(x_train,y_train,x_test,y_test)
+                s=self._impo_score(x_train,y_train)
 
                 
         ##### different in MLP!

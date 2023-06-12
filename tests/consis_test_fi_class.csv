@@ -1,9 +1,0 @@
-,data,method,criteria,K,Consistency,Accuracy
-0,Iris,Coef_LogisticRidge,RBO,1,0.778,0.844
-1,Iris,Coef_LogisticRidge,RBO,2,0.889,0.844
-2,Iris,Coef_LogisticRidge,RBO,3,0.926,0.844
-3,Iris,Coef_LogisticRidge,RBO,4,0.944,0.844
-4,Iris,Coef_LogisticRidge,Jaccard,1,0.778,0.844
-5,Iris,Coef_LogisticRidge,Jaccard,2,1.0,0.844
-6,Iris,Coef_LogisticRidge,Jaccard,3,1.0,0.844
-7,Iris,Coef_LogisticRidge,Jaccard,4,1.0,0.844
