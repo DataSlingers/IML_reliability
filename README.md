@@ -1,4 +1,4 @@
-IML reliability: empirical study 
+IML reliability:  empirical study on the reliability of interpretations of interpretable machine learning methods
 ===
 imlreliability provides a unified framework for the reliability test based on repeated data perturbation, as specified in paper... Users are free to implement their own IML methodology, data set or consistency metrics. 
 The output can be directly uploaed and compare to our reliability experiments in the [**dashboard**](https://iml-reliability.herokuapp.com).
